@@ -15,4 +15,6 @@
 ## 新建项目
 - 新版AS新建Empty Activity项目时只能选择Kotlin语言开发。
 - 以Project结构查看项目结构，在app/src/main/java/包名下的AB.java文件（AS中不显示java后缀）和app/src/main/res/layout下的b_a.xml是一对，表示逻辑和页面，新建java时（就是Activity文件）对应的xml会自动创建。
+- 每个页面都必须有个盒子
+- Activity.java中查找元素 Button recommendBtn = findViewById(R.id.recommendBtn);
 

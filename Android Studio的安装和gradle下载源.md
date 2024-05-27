@@ -14,7 +14,8 @@
 参考：https://www.cnblogs.com/rainbow70626/p/14364552.html，https://cloud.tencent.com/developer/article/1743279
 ## 新建项目
 - 新版AS新建Empty Activity项目时只能选择Kotlin语言开发。
-- 以Project结构查看项目结构，在app/src/main/java/包名下的AB.java文件（AS中不显示java后缀）和app/src/main/res/layout下的b_a.xml是一对，表示逻辑和页面，新建java时（就是Activity文件）对应的xml会自动创建。
+- 新建java文件：
+  以Project结构查看项目结构，在app/src/main/java/包名下的AB.java文件（AS中不显示java后缀）和app/src/main/res/layout下的b_a.xml是一对，表示逻辑和页面，新建java时（就是Activity文件）对应的xml会自动创建。
 - 每个xml相互独立，因此可以有相同的ID的Button。
 - 如果你想要在一个Activity中操作另一个Activity的布局元素，你通常需要采取间接的方式，例如：
 通过Intent传递数据：在AActivity中启动BActivity时，可以通过Intent传递信息给BActivity，告诉它如何更新自己的界面。

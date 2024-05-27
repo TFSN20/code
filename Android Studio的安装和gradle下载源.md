@@ -15,6 +15,15 @@
 ## 新建项目
 - 新版AS新建Empty Activity项目时只能选择Kotlin语言开发。
 - 以Project结构查看项目结构，在app/src/main/java/包名下的AB.java文件（AS中不显示java后缀）和app/src/main/res/layout下的b_a.xml是一对，表示逻辑和页面，新建java时（就是Activity文件）对应的xml会自动创建。
+- 每个xml相互独立，因此可以有相同的ID的Button。
+- 如果你想要在一个Activity中操作另一个Activity的布局元素，你通常需要采取间接的方式，例如：
+通过Intent传递数据：在AActivity中启动BActivity时，可以通过Intent传递信息给BActivity，告诉它如何更新自己的界面。
+使用全局变量或单例：通过一个共享的数据存储（如应用的全局状态或单例模式类），在不同的Activity之间同步状态或数据。
+更新数据源：如果两个Activity依赖同一个数据源（例如数据库），那么一个Activity更新了数据源后，另一个Activity可以根据这些变更来更新其界面。
 - 每个页面都必须有个盒子
 - Activity.java中查找元素 Button recommendBtn = findViewById(R.id.recommendBtn);
+- 切换页面（Intent）
+```Intent uploadIntent = new Intent(MainActivity.this, MineActivity.class);
+startActivity(uploadIntent);
+```
 

@@ -23,7 +23,8 @@
 - 每个页面都必须有个盒子
 - Activity.java中查找元素 Button recommendBtn = findViewById(R.id.recommendBtn);
 - 切换页面（Intent）
-```Intent uploadIntent = new Intent(MainActivity.this, MineActivity.class);
-startActivity(uploadIntent);
-```
+  ```
+  Intent uploadIntent = new Intent(MainActivity.this, MineActivity.class);
+  startActivity(uploadIntent);
+  ```
 

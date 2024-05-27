@@ -21,10 +21,26 @@
 使用全局变量或单例：通过一个共享的数据存储（如应用的全局状态或单例模式类），在不同的Activity之间同步状态或数据。
 更新数据源：如果两个Activity依赖同一个数据源（例如数据库），那么一个Activity更新了数据源后，另一个Activity可以根据这些变更来更新其界面。
 - 每个页面都必须有个盒子
-- Activity.java中查找元素 Button recommendBtn = findViewById(R.id.recommendBtn);
+- xml添加元素
+  ```
+      <Button
+        android:id="@+id/uploadBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:text="上传"
+        />
+  ```
+- Activity.java中查找元素
+  ```
+  Button recommendBtn = findViewById(R.id.recommendBtn);
+  ```
 - 切换页面（Intent）
   ```
-  Intent uploadIntent = new Intent(MainActivity.this, MineActivity.class);
+  Intent uploadIntent = new Intent(MainActivity.this, UploadActivity.class);
   startActivity(uploadIntent);
   ```
 

@@ -35,9 +35,15 @@
         android:text="上传"
         />
   ```
-- Activity.java中查找元素
+- Activity.java中查找元素并添加点击触发事件
   ```
   Button recommendBtn = findViewById(R.id.recommendBtn);
+  uploadBtn.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View v) {
+        finish();
+    }
+  });
   ```
 - 切换页面（Intent）
   ```

@@ -5,19 +5,19 @@ RGB转HSL：
 使用颜色colorA=[123,135,212]和colorB=[12,34,23]，首先需要将它们转换成HSL颜色空间。这个转换可能需要复杂的公式，但许多编程语言都有内置函数或库来完成这个工作。
 圆周相似度（色相）计算：
 比较每种颜色的色相成分（色相为色轮上的角度）。这可以通过找出两个色相角度的差异，并将其规范到区间[0, 180]，因为色轮上色相的最大差异是180度。
-python
-Copy
+```
 def hue_difference(hue1, hue2):
     diff = abs(hue1 - hue2)
     return min(diff, 360 - diff) # 规范到区间[0,180]
+```
 径向相似度（饱和度/亮度）计算：
 对于径向相似度，比较两种颜色的饱和度和亮度值。通过互相减去亮度值及饱和度值并取其绝对值可以得出亮度和饱和度的相似度。
-python
-Copy
+```
 def radial_difference(lightness1, lightness2, saturation1, saturation2):
     lightness_diff = abs(lightness1 - lightness2)
     saturation_diff = abs(saturation1 - saturation2)
     return lightness_diff, saturation_diff
+```
 结合相似度：
 根据应用的不同，你可能需要不同的方式来权衡色相差异和亮度/饱和度差异。为了得出综合的相似度得分，你可以使用加权求和方法，其中你可以根据色相和亮度/饱和度的重要性来分配权重。
 以下是一个结合了所有这些步骤的简单Python脚本示例：

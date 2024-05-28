@@ -12,6 +12,9 @@
 ## 调试
 - USB真机调试：设置——搜索Sdk——SDK Tools——勾选并点击下载Google USB Driver——Android版本要和手机Android版本一致——手机打开开发者调试和安装。
 参考：https://www.cnblogs.com/rainbow70626/p/14364552.html，https://cloud.tencent.com/developer/article/1743279
+## 快捷键
+格式化代码：ctrl+alt+L
+取消撤销：ctrl+shift+Z
 ## 新建项目
 - 新版AS新建Empty Activity项目时只能选择Kotlin语言开发。
 - 新建java文件：

@@ -51,7 +51,7 @@
   startActivity(uploadIntent);
   ```
   ## 样式
-  -- 仅仅改变颜色
+  - 仅仅改变颜色
   ```
   app:backgroundTint="@color/mainBtnColor"
   ```

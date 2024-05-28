@@ -44,7 +44,7 @@ def calc_similarity(colorA, colorB):
         'combined_similarity': combined_similarity
     }
 ```
-# 使用所提供的RGB颜色示例
+- 使用所提供的RGB颜色示例
 ```
 colorA = [123,135,212]
 colorB = [12,34,23]

@@ -1,8 +1,8 @@
 - 安装Python解释器时，勾选添加环境变量会将D:\ProgramFiles\Codes\Python\Python312\和D:\ProgramFiles\Codes\Python\Python312\Scripts路径添加到环境变量
-- 修改全局pip源，更改C:\ProgramData\pip\pip.ini(没有则创建)内容为
+- 修改全局pip源，更改C:\ProgramData\pip\pip.ini(没有则创建)内容为（注意网址http后面有s，否则下载不了）
   ```
   [global]
-  index-url = http://mirrors.aliyun.com/pypi/simple/
+  index-url = https://mirrors.aliyun.com/pypi/simple/
   ```
 - 版本查看 `python3 -V`（区分大小）或 `python -V`或`python --version`
 - 查看python安装目录

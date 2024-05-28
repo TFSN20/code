@@ -50,10 +50,10 @@
   Intent uploadIntent = new Intent(MainActivity.this, UploadActivity.class);
   startActivity(uploadIntent);
   ```
-  ## 样式
-  - 仅仅改变颜色
-  ```
-  app:backgroundTint="@color/mainBtnColor"
-  ```
+## 样式
+- 仅仅改变颜色
+```
+app:backgroundTint="@color/mainBtnColor"
+```
   
 

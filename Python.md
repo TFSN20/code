@@ -26,3 +26,10 @@
   print(sys.path)
   ```
 - 安装特定依赖文件：如果你有一个requirements.txt文件，存有所有需要的包及其版本，可以使用以下命令进行安装：`pip install -r requirements.txt`
+- 在Windows上可以通过更改环境变量的顺序来选择需要的Python版本
+  ```
+  D:\ProgramFiles\Codes\Python\Python312\Scripts\
+  D:\Programfiles\Codes\Python\Python312\
+  ```
+  Scripts用于pip版本，这个可以保留一个一直提前，这样就不用切换python版本时再下载包，对包的操作还是切换前pip对包的操作
+

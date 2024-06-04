@@ -38,6 +38,7 @@
 ### tensorboard
 - 安装```pip install tensorboard```
 - vsc终端或cmd指定目录```tensorboard --logdir C:\Users\Administrator\Desktop\1```
+- 指定端口```tensorboard --logdir=C:\Users\Administrator\Desktop\1 --port=6007```
 ## os模块
 ### 获取目录下的子文件的文件全名，以数组形式
 - os.listdir(r'd:\Downloads\Compressed\hymenoptera_data\hymenoptera_data\train') 得到数组[test.html, 1.mp4, stamp]

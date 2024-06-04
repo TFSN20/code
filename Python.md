@@ -33,7 +33,11 @@
   ```
   Scripts用于pip版本，这个可以保留一个一直提前，这样就不用切换python版本时再下载包，对包的操作还是切换前pip对包的操作
 ## pytorch
-根据[官网](https://pytorch.org/)python版本和是否有英伟达显卡（没有选择则选择cpu）复制pip下载链接。
+### 安装
+- 根据[官网](https://pytorch.org/)python版本和是否有英伟达显卡（没有选择则选择cpu）复制pip下载链接。
+### tensorboard
+- 安装```pip install tensorboard```
+- vsc终端或cmd指定目录```tensorboard --logdir C:\Users\Administrator\Desktop\1```
 ## os模块
 ### 获取目录下的子文件的文件全名，以数组形式
 - os.listdir(r'd:\Downloads\Compressed\hymenoptera_data\hymenoptera_data\train') 得到数组[test.html, 1.mp4, stamp]

@@ -36,9 +36,9 @@
 - 安装:
   根据[官网](https://pytorch.org/)python版本和是否有英伟达显卡（没有选择则选择cpu）复制pip下载链接。
 - tensorboard
-  安装```pip install tensorboard```
-  vsc终端或cmd指定目录```tensorboard --logdir C:\Users\Administrator\Desktop\1```
-  指定端口```tensorboard --logdir=C:\Users\Administrator\Desktop\1 --port=6007```
+  - 安装```pip install tensorboard```
+  - vsc终端或cmd指定目录```tensorboard --logdir C:\Users\Administrator\Desktop\1```
+  - 指定端口```tensorboard --logdir=C:\Users\Administrator\Desktop\1 --port=6007```
 ## os模块
 - 获取目录下的子文件的文件全名，以数组形式
   ```

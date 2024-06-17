@@ -39,6 +39,7 @@
   - 安装```pip install tensorboard```
   - vsc终端或cmd指定目录```tensorboard --logdir C:\Users\Administrator\Desktop\1```
   - 指定端口```tensorboard --logdir=C:\Users\Administrator\Desktop\1 --port=6007```
+  - 关闭端口（即关闭tensorboard）：终端键入ctrl+c中断
 ## os模块
 - 获取目录下的子文件的文件全名，以数组形式
   ```

@@ -70,6 +70,7 @@
     from PIL import Image
 
     image = Image.open('path/to/your/image.jpg')
+    # 打印image会显示<PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=768x512 at 0x1D1ACB1BF20> size以宽高显示，一般为高宽。
     image_array = np.array(image)
     print(image_array.shape)
     ```

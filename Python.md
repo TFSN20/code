@@ -37,6 +37,12 @@
   根据[官网](https://pytorch.org/)python版本和是否有英伟达显卡（没有选择则选择cpu）复制pip下载链接。
 - tensorboard
   - 安装```pip install tensorboard```
+  - 导入SummaryWriter显示：未存取“SummaryWriter”Pylance未从模块“torch.utils.tensorboard”导出“SummaryWriter”
+    改为从"torch.utils.tensorboard.writer"导入。
+    ```
+    from torch.utils.tensorboard import SummaryWriter  # type: ignore
+    ```
+    不用管，可以正常运行
   - vsc终端或cmd指定目录```tensorboard --logdir C:\Users\Administrator\Desktop\1```
   - 指定端口```tensorboard --logdir=C:\Users\Administrator\Desktop\1 --port=6007```
   - 关闭端口（即关闭tensorboard）：终端键入ctrl+c中断

@@ -60,9 +60,10 @@
     img_norm = norm(img_tensor)
     writer = SummaryWriter(r'C:\Users\Administrator\Desktop\1')
     writer.add_image('norm', img_tensor, 1) # 使用tensor类型作为参数时，shape和dataformats默认参数一样都是'CHW'
-    writer.add_image('norm', img_norm, 2)
+    writer.add_image('norm', img_norm, 2) # 2作为step参数，可以是任意数字，显示时会按照数值大小（取整-2.6取-2）排列显示.
     writer.close()
     ```
+  - transforms.Normalize这一步通常在预处理阶段进行，目的是使模型训练更加稳定和快速。
 ## os模块
 - 获取目录下的子文件的文件全名，以数组形式
   ```

@@ -64,6 +64,16 @@
     writer.close()
     ```
   - transforms.Normalize这一步通常在预处理阶段进行，目的是使模型训练更加稳定和快速。
+  - cv2图像shape为高宽通道，tensor类型为通道高宽，SummaryWriter().add_image()使用tensor类型图片时，不用设置默认的dataformats的参数'CHW'，故推荐。
+    ```
+    import numpy as np
+    from PIL import Image
+
+    image = Image.open('path/to/your/image.jpg')
+    image_array = np.array(image)
+    print(image_array.shape)
+    ```
+    PIL图像数据为自己独有的类型，SummaryWriter().add_image()只能使用numpy和tensor数据类型，转为numpy类型后shape为高宽通道，还需要增加dataformats='HWC'参数，好在PIL是自带的库。
 ## os模块
 - 获取目录下的子文件的文件全名，以数组形式
   ```

@@ -75,7 +75,7 @@
     ```
     PIL图像数据为自己独有的类型，SummaryWriter().add_image()只能使用numpy和tensor数据类型，转为numpy类型后shape为高宽通道，还需要增加dataformats='HWC'参数，好在PIL是自带的库。
   - Resize：transforms.Resize((100))表示最短边缩放到100，长边等比缩放，但是100不能大于最短边边长；transforms.Resize((800,800))表示图像高宽缩放到此像素，没有限制。
-  - RandomCrop：一个参数时不能大于实际边最小的像素，两个参数时可以大于，且即使transforms.RandomCrop(1, 1)也会取到图片外的黑色像素点。
+  - RandomCrop：一个参数时对应的不能大于对应边的像素，一个参数情况包括512和(512,512)【高宽】两种情况，两个参数时可以大于，且即使transforms.RandomCrop(1, 1)也会取到图片外的黑色像素点。
 ## os模块
 - 获取目录下的子文件的文件全名，以数组形式
   ```

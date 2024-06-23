@@ -35,6 +35,22 @@
 ## pytorch
 - 安装:
   根据[官网](https://pytorch.org/)python版本和是否有英伟达显卡（没有选择则选择cpu）复制pip下载链接。
+- Dataset
+  - 1
+     ```
+     from torch.utils.data import Dataset
+
+     class MyData(Dataset):
+       def  __init__(self):
+         pass
+       def __getitem__(self,index): # 只能是self和一个额外参数，通常是index，如果需要多个则在return前处理，
+         i,a,b,c=index
+         return i,a,b,c
+       def __len__(self):
+         pass
+     MyData()[-1] # 即__get__item()return的东西，和MyData().__getitem__(-1)效果一样
+     MyData()[-1].__getitem__(-1) # 即c，和MyData()[-1][-1]效果一样
+     ```
 - tensorboard
   - 安装```pip install tensorboard```
   - 导入SummaryWriter显示：未存取“SummaryWriter”Pylance未从模块“torch.utils.tensorboard”导出“SummaryWriter”

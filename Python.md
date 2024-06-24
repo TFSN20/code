@@ -43,7 +43,7 @@
      class MyData(Dataset):
        def  __init__(self):
          pass
-       def __getitem__(self,index): # 只能是self和一个额外参数，通常是index，如果需要多个则在return前处理，
+       def __getitem__(self,index): # 只能是self和一个额外参数，通常是index（index: int），如果需要多个则在return前处理，
          i,a,b,c=index
          return i,a,b,c
        def __len__(self):

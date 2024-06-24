@@ -96,6 +96,7 @@
   - tensor数据类型图片tensor_img.shape和tensor_img.size()等价
 - from torch.utils.data import DataLoader
   - 结合writer.add_images可以1个step加载多个图片。imgs是tensor NCHW 多了一个批次batch_size,Number of images
+  - DataLoader(dataset=test_set, batch_size=3, shuffle=True, num_workers=0, drop_last=True) shuffle默认为False，即每次都是顺序加载不会变
 ## os模块
 - 获取目录下的子文件的文件全名，以数组形式
   ```

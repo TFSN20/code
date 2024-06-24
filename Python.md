@@ -116,4 +116,45 @@ tensor_img[:, 0, 0] 是对这个Tensor进行索引操作，具体解释如下：
 0 表示高度的第一个像素（从上到下的第一个像素）。
 0 表示宽度的第一个像素（从左到右的第一个像素）。
 - __getitem__是一个特殊方法（魔术方法），主要用于类的索引操作和切片。当你试图通过方括号索引操作访问类的实例时（例如instance[key]），Python会尝试调 用这个实例的__getitem__方法。
+- In Python, classes can have several special (or "magic") methods that allow you to define or modify the behavior of instances of that class in specific ways. These methods are always surrounded by double underscores (e.g., `__init__`). Your example demonstrates the use of `__init__` for initialization and `__call__` to make an instance callable.
+
+Here are some other common special methods that you might find useful in various contexts:
+
+### Object Creation and Destruction
+- `__new__(cls, [...])`: Called to create a new instance of the class. It's the first step in the instance creation process and is rarely overridden.
+- `__init__(self, [...])`: Called after the instance is created. Used for initializing the instance with the given arguments.
+- `__del__(self)`: Called when an instance is about to be destroyed. This can be useful for cleanup activities.
+
+### String Representations
+- `__str__(self)`: Called by the `str()` built-in function and by the `print()` function to compute the "informal" or nicely printable string representation of an object.
+- `__repr__(self)`: Called by the `repr()` built-in function to compute the "official" string representation of an object. This is how the object would be represented in Python code.
+
+### Attribute Access
+- `__getattr__(self, name)`: Called when the default attribute access fails with an AttributeError (i.e., when trying to access an attribute that doesn't exist).
+- `__setattr__(self, name, value)`: Called when an attribute assignment is attempted.
+- `__delattr__(self, name)`: Called when an attribute deletion is attempted.
+
+### Comparison Operators
+- `__eq__(self, other)`: Defines behavior for the equality operator, `==`.
+- `__ne__(self, other)`: Defines behavior for the inequality operator, `!=`.
+- `__lt__(self, other)`: Defines behavior for the less-than operator, `<`.
+- `__gt__(self, other)`: Defines behavior for the greater-than operator, `>`.
+- `__le__(self, other)`: Defines behavior for the less-than-or-equal-to operator, `<=`.
+- `__ge__(self, other)`: Defines behavior for the greater-than-or-equal-to operator, `>=`.
+
+### Arithmetic Operators
+- `__add__(self, other)`: Implements addition.
+- `__sub__(self, other)`: Implements subtraction.
+- `__mul__(self, other)`: Implements multiplication.
+- `__div__(self, other)`: Implements division (in Python 2, use `__truediv__` in Python 3).
+- `__mod__(self, other)`: Implements the modulo operation.
+- Many more for other operators (`__pow__`, `__and__`, `__or__`, etc.).
+
+### Container Methods
+- `__len__(self)`: Called to implement the `len()` built-in function.
+- `__getitem__(self, key)`: Called to implement evaluation of `self[key]`.
+- `__setitem__(self, key, value)`: Called to implement assignment to `self[key]`.
+- `__contains__(self, item)`: Called to implement membership tests using `in` and `not in`.
+
+These are just a few examples. Python provides a rich set of special methods allowing a lot of flexibility and control over how objects behave.
 

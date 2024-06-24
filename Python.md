@@ -97,6 +97,8 @@
 - from torch.utils.data import DataLoader
   - 结合writer.add_images可以1个step加载多个图片。imgs是tensor NCHW 多了一个批次batch_size,Number of images
   - DataLoader(dataset=test_set, batch_size=3, shuffle=True, num_workers=0, drop_last=True) shuffle默认为False，即每次都是顺序加载不会变
+- tensor
+  - torch.Size([1, 3])是二维张量的形状，其中第一维的大小为 1，第二维的大小为 3。这可以被认为是一个具有 1 行和 3 列的矩阵。这样的张量可能看起来像 .tensor([[1.0, 2.0, 3.0]])，
 ## os模块
 - 获取目录下的子文件的文件全名，以数组形式
   ```

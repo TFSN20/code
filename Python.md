@@ -75,8 +75,8 @@
     norm = transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
     img_norm = norm(img_tensor)
     writer = SummaryWriter(r'C:\Users\Administrator\Desktop\1')
-    writer.add_image('norm', img_tensor, 1) # 使用tensor类型作为参数时，shape和dataformats默认参数一样都是'CHW'
-    writer.add_image('norm', img_norm, 2) # 2作为step参数，可以是任意数字，显示时会按照数值大小（取整-2.6取-2）排列显示.
+    writer.add_image('norm', img_tensor, 1) # 使用tensor类型作为参数时，shape和dataformats默认参数一样都是'CHW', step默认从0开始
+    writer.add_image('norm', img_norm, 2) # 2作为step参数，可以是任意数字，显示时会按照数值大小（取整-2.6取-2）排列显示. 
     writer.close()
     ```
   - transforms.Normalize这一步通常在预处理阶段进行，目的是使模型训练更加稳定和快速。
@@ -94,6 +94,8 @@
   - Resize：transforms.Resize((100))表示最短边缩放到100，长边等比缩放，但是100不能大于最短边边长；transforms.Resize((800,800))表示图像高宽缩放到此像素，没有限制。
   - RandomCrop：一个参数时对应的不能大于对应边的像素，一个参数情况包括512和(512,512)【高宽】两种情况，两个参数时可以大于，且即使transforms.RandomCrop(1, 1)也会取到图片外的黑色像素点。
   - tensor数据类型图片tensor_img.shape和tensor_img.size()等价
+- from torch.utils.data import DataLoader
+  - 结合writer.add_images可以1个step加载多个图片。imgs是tensor NCHW 多了一个批次batch_size
 ## os模块
 - 获取目录下的子文件的文件全名，以数组形式
   ```

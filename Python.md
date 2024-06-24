@@ -95,7 +95,7 @@
   - RandomCrop：一个参数时对应的不能大于对应边的像素，一个参数情况包括512和(512,512)【高宽】两种情况，两个参数时可以大于，且即使transforms.RandomCrop(1, 1)也会取到图片外的黑色像素点。
   - tensor数据类型图片tensor_img.shape和tensor_img.size()等价
 - from torch.utils.data import DataLoader
-  - 结合writer.add_images可以1个step加载多个图片。imgs是tensor NCHW 多了一个批次batch_size
+  - 结合writer.add_images可以1个step加载多个图片。imgs是tensor NCHW 多了一个批次batch_size,Number of images
 ## os模块
 - 获取目录下的子文件的文件全名，以数组形式
   ```

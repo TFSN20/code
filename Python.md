@@ -36,7 +36,7 @@
 - 安装:
   根据[官网](https://pytorch.org/)python版本和是否有英伟达显卡（没有选择则选择cpu）复制pip下载链接。
 - Dataset
-  - 1
+  - 建议使用```MyData(root_dir, 'ants')[0]```查看返回值，```MyData(root_dir, 'ants')[0][0]```查看返回值数组的第一个值。
      ```
      from torch.utils.data import Dataset
 

@@ -32,6 +32,13 @@
   D:\Programfiles\Codes\Python\Python312\
   ```
   Scripts用于pip版本，这个可以保留一个一直提前，这样就不用切换python版本时再下载包，对包的操作还是切换前pip对包的操作
+- vscode print控制台中文乱码
+  ```
+  import io
+  import sys
+  #改变标准输出的默认编码
+  sys.stdout=io.TextIOWrapper(sys.stdout.buffer,encoding='utf8')
+  ```
 ## pytorch
 - 安装:
   根据[官网](https://pytorch.org/)python版本和是否有英伟达显卡（没有选择则选择cpu）复制pip下载链接。

@@ -116,6 +116,7 @@
   ```
   x对应的softmax值![image](https://github.com/TFSN20/code/assets/64345882/d0dd8e84-d8fa-42e0-86ba-2c314ffd4396)
   ![image](https://github.com/TFSN20/code/assets/64345882/bb99c978-81a3-48ab-b741-9183aff32b6c)
+  软化（softmax）的步骤通过指数化操作会放大较大的值，并进一步区分较小的值。这对确保输出的概率分布更有意义和区分度是至关重要的
 
 
 ## os模块

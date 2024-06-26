@@ -108,6 +108,16 @@
   - torch.Size([1, 3])是二维张量的形状，其中第一维的大小为 1，第二维的大小为 3。这可以被认为是一个具有 1 行和 3 列的矩阵。这样的张量可能看起来像 .tensor([[1.0, 2.0, 3.0]])，
 - 卷积
   - 在 PyTorch 中，所有神经网络层和模型类都继承自 nn.Module。nn.Module 内部定义了\_\_call\_\_方法，它会自动调用实例的 forward 方法。这意味着，当你调用一个 nn.Module 实例时，底层会执行它的 forward 方法。
+- CrossEntropyLoss:
+  ```
+  x = torch.tensor([[0.1000, 0.2000, 0.3000]])
+  y = torch.tensor([1])
+  nn.CrossEntropyLoss()(x,y)
+  ```
+  x对应的softmax值![image](https://github.com/TFSN20/code/assets/64345882/d0dd8e84-d8fa-42e0-86ba-2c314ffd4396)
+  ![image](https://github.com/TFSN20/code/assets/64345882/bb99c978-81a3-48ab-b741-9183aff32b6c)
+
+
 ## os模块
 - 获取目录下的子文件的文件全名，以数组形式
   ```

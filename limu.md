@@ -30,4 +30,4 @@ X += Y 是一个就地操作（in-place operation），它不创建新的张量�
 - 方阵：行数等于列数。对称方阵：A=A.T
 - A * B：两个矩阵的按元素乘法称为Hadamard积（Hadamard product）（数学符号![image](https://github.com/TFSN20/code/assets/64345882/10ec13ad-809a-4ef1-854d-1287a2b01371)）
 - axis：A.sum(axis=1)，对于二维4X3矩阵，指定axis=1将通过汇总所有列的元素降维（轴1，每列对应的元素相加）。因此，输入轴1的维数在输出形状中消失，得到1X4矩阵。
-- torch.dot(x, y) == torch.sum(x * y): 点积，Dot Product，表示为x^Ty
+- torch.dot(x, y) == torch.sum(x * y): 点积，Dot Product，表示为x^T^y

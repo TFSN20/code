@@ -19,3 +19,10 @@
   su
   chmod 777 /data/local/tmp/frida-server
   ```
+  测试：
+  ```
+  cd /data/local/tmp/
+  ./frida-server
+  指定端口启动：./frida-server -l 127.0.0.1:27043
+  frida-ps -U # 另起cmd输入
+  ```

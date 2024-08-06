@@ -67,13 +67,10 @@
     ```
 - hook闪退：frida被检测到了
   - 改端口启动frida-server
-  - frida-server改名lud
+  - frida-server去特征字段，使用https://github.com/hzzheyang/strongR-frida-android/releases下载
     ```
-    mv frida-server lud
-    ```
-    ```
+    adb push "d:\Downloads\Compressed\hluda-server-16.4.8-android-arm64\frida-server" /data/local/tmp/
     adb shell
     su
-    cd /data/local/tmp
-    ./lud -l 127.0.0.1:27777 &
+    chmod 777 /data/local/tmp/frida-server
     ```

@@ -17,16 +17,24 @@
   ```
   adb push "D:\Downloads\frida-server-16.4.8-android-arm64\frida-server" /data/local/tmp/
   ```
-  最高权限：
+  - 最高权限：
   ```
   adb shell
   su
   chmod 777 /data/local/tmp/frida-server
   ```
-  测试：
+  - 测试：
   ```
   cd /data/local/tmp/
   ./frida-server
   指定端口启动：./frida-server -l 127.0.0.1:27043
   frida-ps -U # 另起cmd输入
+  ```
+  - 查看端口占用
+  ```
+  netstat -aon | findstr :10808
+  ```
+  - 根据进程PID杀死
+  ```
+  tasklist /FI "PID eq 11964"
   ```

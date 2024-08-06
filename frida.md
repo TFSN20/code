@@ -54,5 +54,17 @@
   netstat -aon | findstr :27043
   frida-ps -U
   ```
-- hook准备
-  - 打开目标app
+- 两种方式hook
+  - spawn模式：重新启动hook，hook的时机非常早（即在App启动阶段）
+    ```
+    device = frida.get_remote_device()
+    pid = device.spawn(['com.icbc'])
+    device.resume(pid)
+    time.sleep(1)
+    session = device.attach(pid)
+    ```
+  - attach模式：附加hook，需要App处于启动状态
+    ```
+    session = frida.get_remote_device().attach('中国工商银行')
+    ```
+- hook闪退：frida被检测到了

@@ -9,6 +9,10 @@
   pip install frida
   pip install frida-tools
   ```
+  - 查看frida库版本
+  ```
+  frida --version
+  ```
 - 推送到手机端（解压文件改名为frida-server）：
   ```
   adb push "D:\Downloads\frida-server-16.4.8-android-arm64\frida-server" /data/local/tmp/

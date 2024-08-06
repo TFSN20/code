@@ -74,3 +74,4 @@
     su
     chmod 777 /data/local/tmp/frida-server
     ```
+  - rpc.exports函数名名字必须小写，不能有_.

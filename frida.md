@@ -39,11 +39,16 @@
   ```
   tasklist /FI "PID eq 12300"
   ```
-  - 一键执行：
+  - 一键运行：
   ```
   adb shell
   su
   cd /data/local/tmp
   ./frida-server -l 127.0.0.1:27777 &
+  ```
+  - 一键转发
+  ```
   adb forward tcp:27777 tcp:27777
+  netstat -aon | findstr :27777
+  frida-ps -U
   ```

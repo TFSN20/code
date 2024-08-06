@@ -48,10 +48,8 @@
   ```
   - 一键转发
   ```
-  adb forward tcp:27042 tcp:27042
-  adb forward tcp:27043 tcp:27043
-  netstat -aon | findstr :27042
-  netstat -aon | findstr :27043
+  adb forward tcp:27777 tcp:27777
+  netstat -aon | findstr :27777
   frida-ps -U
   ```
 - 两种方式hook
@@ -68,3 +66,14 @@
     session = frida.get_remote_device().attach('中国工商银行')
     ```
 - hook闪退：frida被检测到了
+  - 改端口启动frida-server
+  - frida-server改名lud
+    ```
+    mv frida-server lud
+    ```
+    ```
+    adb shell
+    su
+    cd /data/local/tmp
+    ./lud -l 127.0.0.1:27777 &
+    ```

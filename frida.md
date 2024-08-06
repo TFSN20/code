@@ -48,7 +48,11 @@
   ```
   - 一键转发
   ```
-  adb forward tcp:27777 tcp:27777
-  netstat -aon | findstr :27777
+  adb forward tcp:27042 tcp:27042
+  adb forward tcp:27043 tcp:27043
+  netstat -aon | findstr :27042
+  netstat -aon | findstr :27043
   frida-ps -U
   ```
+- hook准备
+  - 打开目标app

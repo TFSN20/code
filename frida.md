@@ -27,7 +27,7 @@
   ```
   cd /data/local/tmp/
   ./frida-server &
-  一般指定端口启动：./frida-server -l 127.0.0.1:27777
+  一般指定端口启动：./frida-server -l 127.0.0.1:27777 &
   adb forward tcp:27777 tcp:27777 # 端口转发
   frida-ps -U # 另起cmd输入
   ```
@@ -44,6 +44,6 @@
   adb shell
   su
   cd /data/local/tmp
-  ./frida-server &
-  adb forward tcp:27042 tcp:27042
+  ./frida-server -l 127.0.0.1:27777 &
+  adb forward tcp:27777 tcp:27777
   ```

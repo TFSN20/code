@@ -33,11 +33,11 @@
   ```
   - 查看端口占用
   ```
-  netstat -aon | findstr :10808
+  netstat -aon | findstr :27042
   ```
   - 根据进程PID杀死
   ```
-  tasklist /FI "PID eq 11964"
+  tasklist /FI "PID eq 12300"
   ```
   - 一键执行：
   ```

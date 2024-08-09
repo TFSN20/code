@@ -33,11 +33,11 @@
   ```
   - 查看端口占用
   ```
-  netstat -aon | findstr :27042
+  netstat -aon | findstr :27777
   ```
   - 根据进程PID杀死
   ```
-  tasklist /FI "PID eq 12300"
+  tasklist /FI "PID eq 12300" （好像对frida无效）
   ```
   - 一键运行：
   ```

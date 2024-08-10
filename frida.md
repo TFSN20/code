@@ -66,7 +66,13 @@
     session = frida.get_remote_device().attach('中国工商银行')
     ```
 - hook闪退：frida被检测到了
-  - 改端口启动frida-server
+  - 改端口启动frida-server，frida-server改名，这里改为av
+    ```
+    adb shell
+    su
+    cd /data/local/tmp
+    ./av -l 127.0.0.1:27777 &
+    ```
   - frida-server去特征字段，使用https://github.com/hzzheyang/strongR-frida-android/releases下载
     ```
     adb push "d:\Downloads\Compressed\hluda-server-16.4.8-android-arm64\frida-server" /data/local/tmp/

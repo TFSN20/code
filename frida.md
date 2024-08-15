@@ -99,9 +99,9 @@
   strcmp("AB", "B") // <0 A小于B的ASCII码, 只比第一位，一样则往后比较，没有后一位则\0为终止符比较，ASCII码最小为0，即\0
   ```
   ```
-  strstr('REJECT', 'REJECT') // 0
-  strstr('REJECT', 'REJECT1') // -1
-  strstr('REJECT', 'JECT') // 2
+  strstr('REJECT', 'REJECT') // 返回指针
+  strstr('REJECT', 'REJECT1') // NULL frida js 使用0
+  strstr('REJECT', 'JECT') // 返回指针
   ```
 - 文件描述符（file descriptors）检测，每个文件描述符是一个符号链接，指向它所引用的文件或资源：frida-server运行时会涉及创建和管理符号链接，"/proc/self/fd/"目录下记录了这些链接，当链接中包含可疑字符时即检测到。这些链接以\开头，所以只需要strstr第二个参数（可疑字符）判断是否在第一个参数（链接）内即可。
   

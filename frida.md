@@ -113,13 +113,20 @@
   ```
   cat /proc/pid/task/tid/status
   ```
-- status:
+- tid全部的name status:
   ```
   for i in $(ls /proc/11157/task/); do
     echo "$i"
     head -1 /proc/11157/task/$i/status
     echo "—"
   done
+  ```
+- 终端启动
+  ```
+  frida -f tv.danmaku.bili -l "D:\OneDrive\Codes\frida\1\frida_script.js" -H 127.0.0.1:27777
+  ```
+  ```
+  frida -U -f tv.danmaku.bili -l "D:\OneDrive\Codes\frida\1\frida_script.js"
   ```
 
 ## frida常见检测手段

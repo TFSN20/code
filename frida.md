@@ -113,6 +113,10 @@
   ```
   cat /proc/pid/task/tid/status
   ```
+- status:
+  ```
+  for i in "Is /proc/11157/task/";do echo $i; head -1 /proc/11157/task/$i/status;echo "—";done:
+  ```
 
 ## frida常见检测手段
 - 打印args详细：

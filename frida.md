@@ -81,6 +81,35 @@
     chmod 777 /data/local/tmp/frida-server
     ```
   - rpc.exports函数名名字必须小写，不能有_.
+## 常用脚本
+- 开启frida：
+  ```
+  adb shell
+  su
+  cd /data/local/tmp
+  ./av -l 127.0.0.1:27777 &
+  ```
+- 转发端口：
+  ```
+  adb forward tcp:27777 tcp:27777
+  netstat -aon | findstr :27777
+  frida-ps -U
+  ```
+- 查看app pid（运行状态）
+  ```
+  adb shell ps | findstr package_name
+  ```
+- 查看app线程
+  ```
+  adb shell
+  su
+  ls /proc/11157/task
+  ```
+- 查看maps
+  ```
+  cat /proc/11157/maps
+  ```
+- cat /proc/11157/task/11157/status
 ## frida常见检测手段
 - 打印args详细：
   ```

@@ -92,7 +92,7 @@
       count++;
   }
   ```
-- 有些app会向firda-server发送请求，如果回应为REJECT字符，则检测到，使用strcmp或strstr比较两个字符指针里的字符（回应字符和REJECT字符）是否一样，一样则返回0，所以可以hook这两个函数，如果函数的前两个参数中有一个是REJECT字符，证明app有此项检测，我们只需返回非0即可。（先hook再运行app可以保证即使app对strcmp进行了hook，也可被修改hook）
+- 有些app会向firda-server发送请求，如果回应为REJECT字符，则检测到，使用strcmp或strstr比较两个字符指针里的字符（回应字符和REJECT字符）是否一样，一样则返回0，所以可以hook这两个函数，如果函数的前两个参数中有一个是REJECT字符，证明app有此项检测，我们只需返回非0即可。（先hook再运行app可以保证即使app对strcmp进行了hook，也可被修改hook。app是否可以在运行时通过网络请求js，js提供比较函数使用，或则让frida没法hook 其他平台？接口提供的比较函数）
   ```
   strcmp("A", "B") // <0
   strcmp("REJEC", "REJECT") // 亦<0，所以不能

@@ -115,7 +115,11 @@
   ```
 - status:
   ```
-  for i in "Is /proc/11157/task/";do echo $i; head -1 /proc/11157/task/$i/status;echo "—";done:
+  for i in $(ls /proc/11157/task/); do
+    echo "$i"
+    head -1 /proc/11157/task/$i/status
+    echo "—"
+  done
   ```
 
 ## frida常见检测手段

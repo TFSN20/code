@@ -92,4 +92,9 @@
       count++;
   }
   ```
-- 
+- 有些app会向firda-server发送请求，如果回应为REJECT字符，则检测到，使用strcmp或strstr比较两个字符指针里的字符（回应字符和REJECT字符）是否一样，一样则返回0，所以可以hook这两个函数，如果函数的前两个参数中有一个是REJECT字符，证明app有此项检测，我们只需返回非0即可。
+  ```
+  strcmp("A", "B") // <0
+  strcmp("REJEC", "REJECT") // 亦<0，所以不能
+  strcmp("AB", "B") // <0 A小于B的ASCII码, 只比第一位，一样则往后比较，没有后一位则\0为终止符比较，ASCII码最小为0，即\0
+  

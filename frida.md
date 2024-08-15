@@ -99,17 +99,21 @@
   ```
   adb shell ps | findstr package_name
   ```
-- 查看app线程
+- 查看app进程ID（PID）
   ```
   adb shell
   su
-  ls /proc/11157/task
+  ls /proc/pid/task
   ```
-- 查看maps
+- 查看maps 过滤
   ```
-  cat /proc/11157/maps
+  cat /proc/pid/maps | grep frida
   ```
-- cat /proc/11157/task/11157/status
+- 线程ID（TID）：
+  ```
+  cat /proc/pid/task/11157/status
+  ```
+
 ## frida常见检测手段
 - 打印args详细：
   ```

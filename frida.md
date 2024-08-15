@@ -92,9 +92,15 @@
       count++;
   }
   ```
-- 有些app会向firda-server发送请求，如果回应为REJECT字符，则检测到，使用strcmp或strstr比较两个字符指针里的字符（回应字符和REJECT字符）是否一样，一样则返回0，所以可以hook这两个函数，如果函数的前两个参数中有一个是REJECT字符，证明app有此项检测，我们只需返回非0即可。
+- 有些app会向firda-server发送请求，如果回应为REJECT字符，则检测到，使用strcmp或strstr比较两个字符指针里的字符（回应字符和REJECT字符）是否一样，一样则返回0，所以可以hook这两个函数，如果函数的前两个参数中有一个是REJECT字符，证明app有此项检测，我们只需返回非0即可。（但是否有这样的情况，如果strcmp("REJEC", "REJECT")）
+  ```
+  if(strlen(args[0].readCString())==6){
+    if(strcmp("REJEC", "REJECT"))
+  }
+  ```
   ```
   strcmp("A", "B") // <0
   strcmp("REJEC", "REJECT") // 亦<0，所以不能
   strcmp("AB", "B") // <0 A小于B的ASCII码, 只比第一位，一样则往后比较，没有后一位则\0为终止符比较，ASCII码最小为0，即\0
+- 文件描述符（file descriptors）检测：frida-server运行时会涉及创建和管理符号链接，"/proc/self/fd/"目录下记录了这些链接，当链接中包含可疑字符时即检测到。这些链接以\开头，所以只需要strstr第二个参数（可疑字符）判断是否在第一个参数（链接）内即可。
   

@@ -81,3 +81,15 @@
     chmod 777 /data/local/tmp/frida-server
     ```
   - rpc.exports函数名名字必须小写，不能有_.
+## frida常见检测手段
+- 打印args详细：
+  ```
+  var count = 0;
+  // Iterate over the args to determine the count
+  while (args[count] !== undefined && args[count] !== null) {
+      console.log("args[" + count + "]: " + args[count].readCString());
+      console.log(`args[${count}]: ${args[count].readCString()}, ${args[count]};`);
+      count++;
+  }
+  ```
+- 

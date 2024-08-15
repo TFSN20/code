@@ -111,7 +111,7 @@
   ```
 - 线程ID（TID）：
   ```
-  cat /proc/pid/task/11157/status
+  cat /proc/pid/task/tid/status
   ```
 
 ## frida常见检测手段

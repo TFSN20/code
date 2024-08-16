@@ -123,7 +123,7 @@
   ```
 - 终端启动（spawn）
   ```
-  frida -f io.cordova.zhqy -l "D:\OneDrive\Codes\frida\1\frida_script.js" -H 127.0.0.1:27777
+  frida -l "D:\OneDrive\Codes\frida\1\frida_script.js" -H 127.0.0.1:27777 -f io.cordova.zhqy
   ```
   ```
   frida -U -f tv.danmaku.bili -l "D:\OneDrive\Codes\frida\1\frida_script.js"

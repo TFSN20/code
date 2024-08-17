@@ -9,5 +9,5 @@
   转发端口：
   ```
   adb forward tcp:28888 tcp:28888
-  netstat -aon | findstr :27777
+  netstat -aon | findstr :28888
   ```

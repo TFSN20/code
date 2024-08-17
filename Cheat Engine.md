@@ -4,7 +4,7 @@
   adb shell
   su
   cd /data/local/tmp
-  ./hao -P 127.0.0.1:28888
+  ./hao -p 28888
   ```
   转发端口：
   ```

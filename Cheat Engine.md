@@ -6,8 +6,10 @@
   cd /data/local/tmp
   ./hao -p 28888
   ```
-  转发端口：
+  新开终端，转发端口：
   ```
   adb forward tcp:28888 tcp:28888
   netstat -aon | findstr :28888
   ```
+  adb usb连接
+  ce：file->open process->network host:127.0.0.1 port:28888

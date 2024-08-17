@@ -4,9 +4,10 @@
   adb shell
   su
   cd /data/local/tmp
-  ./hao
+  ./hao -P 127.0.0.1:28888
   ```
   转发端口：
   ```
-  adb forward tcp:52736 tcp:52736
+  adb forward tcp:28888 tcp:28888
+  netstat -aon | findstr :27777
   ```

@@ -12,6 +12,7 @@
   netstat -aon | findstr :28888
   ```
   adb usb连接
+  防止检测：edit->settings->Debugger Options->Try to prevent detection of the debugger
   ce：file->open process->network host:127.0.0.1 port:28888
 - 字节（Byte）是计算机中存储和处理数据的基本单位。一个字节等于8位（bits），每位可以是0或1。字节是计算机内存中存储数据的基本构建块，用来表示数据的基本单位。
 

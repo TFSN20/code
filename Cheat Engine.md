@@ -3,7 +3,7 @@
   ```
   adb shell
   su
-  cd /data/local/tmp
+  cd /data/local/tmp/ce
   ./hao -p 28888
   ```
   新开终端，转发端口：

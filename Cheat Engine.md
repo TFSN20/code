@@ -1,5 +1,6 @@
 - 下载源码，ndk-build可执行文件，，更改ceserver名为hao（防止检测），https://www.cheatengine.org/downloads.php直接下载exe。教程：https://blog.csdn.net/qq_43355637/article/details/126941992
-- 开启：
+- 每次需要
+  开启：
   ```
   adb shell
   su
@@ -12,12 +13,15 @@
   netstat -aon | findstr :28888
   ```
   防止检测：edit->settings->Debugger Options->Try to prevent detection of the debugger
-  
-  ce：file->open process->network host:127.0.0.1 port:28888
-- 卡死：换端口
-- 寻找指针时Error：Access violation：重新连接进程（游戏清理后台重新进入）
+- 其他问题：
+  - ce：file->open process->network host:127.0.0.1 port:28888
+  - 卡死：换端口
+  - 寻找指针时Error：Access violation：重新连接进程（游戏清理后台重新进入）
 - 寻找指针：把地址拉到下面->pointer scan for this adress:
-  主要设置Max different offsets per node和Max level，Maximum offset value。
+  主要设置Max different offsets per node（偏移量有几种，如2）和Max level（最大几层指针，如5），Maximum offset value（最大偏移量，如2047）。
+
+
+  
 - "Max different offsets per node" 和 "Max level" 是Cheat Engine指针扫描器中的两个不同参数，它们分别控制了指针扫描的不同方面：
 
 Max different offsets per node：

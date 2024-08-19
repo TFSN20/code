@@ -19,7 +19,7 @@
   - 寻找指针时Error：Access violation：重新连接进程（游戏清理后台重新进入）
 - 寻找指针：把地址拉到下面->pointer scan for this adress:
   主要设置Max different offsets per node（偏移量有几种，如2）和Max level（最大几层指针，如5），Maximum offset value（最大偏移量，如2047）。
-
+----------------------------------------
 
   
 - "Max different offsets per node" 和 "Max level" 是Cheat Engine指针扫描器中的两个不同参数，它们分别控制了指针扫描的不同方面：

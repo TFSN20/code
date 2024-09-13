@@ -15,3 +15,5 @@
 - 框选物体：Ctrl+Alt+鼠标左键
 
 - bsp画刷再brush setting选项中转为StaticMeshActor后可作为复制体使用，多个StaticMeshActor可以在窗口——开发者工具中合并为StaticMeshActor。
+- umap后缀文件是一个关卡文件。
+

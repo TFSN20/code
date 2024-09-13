@@ -13,3 +13,5 @@
 - 显示隐藏游戏模式时看不到的物体（如空气墙）：G
 - Ctrl+数字，存储当前视角，再按下对应数字会跳转到对应视角
 - 框选物体：Ctrl+Alt+鼠标左键
+
+- bsp画刷再brush setting选项中转为StaticMeshActor后可作为复制体使用，多个StaticMeshActor可以在窗口——开发者工具中合并为StaticMeshActor。

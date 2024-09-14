@@ -17,3 +17,7 @@
 - bsp画刷再brush setting选项中转为StaticMeshActor后可作为复制体使用，多个StaticMeshActor可以在窗口——开发者工具中合并为StaticMeshActor。
 - umap后缀文件是一个关卡文件。
 
+## 常见问题
+- 新建关卡无关照：选择文件——新建关卡——默认，会有光照系统。或则添加天空光照，更改为可移动，构建光照
+
+

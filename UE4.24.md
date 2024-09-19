@@ -47,6 +47,7 @@
 - 鼠标点击触发：为door添加点击事件——世界场景新建玩家控制器类，勾选启用点击和光标。
 - 进入离开触发鼠标显示：需要从玩家控制器衍生出显示鼠标光标。
 - 根据是否携带钥匙布尔值来判断是否可以开门：为door蓝图类添加布尔变量并编译和设置默认值，按下键盘E借助分支节点判断布尔是否可以开门，否则打印需要key——key蓝图类需要进行蓝图通信get all actor of class，选择actor class后，out actors返回数组，对应场景中存在的门的数量，设置布尔值，然后销毁self actor.
-### 通过蓝图通信改变人物速度
-- 将人物速度变量通过蓝图自定义事件通信导出——再在另一个蓝图类中对ThirdPersonCharacter类型的As Third Person Character使用事件名称。
+### 蓝图通信
+- 通过蓝图通信改变人物速度：将人物速度变量通过蓝图自定义事件通信导出——再在另一个蓝图类中对ThirdPersonCharacter类型的As Third Person Character使用事件名称。
+- Actor蓝图类中执行关卡蓝图的自定义事件：execute console command，再command内输入ce 自定义事件名称。
 

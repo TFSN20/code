@@ -70,4 +70,7 @@
   - 获取实时向量：Get Control Rotation，Make Rotation
   - 视角：鼠标Turn-yaw，LookUP-Pitch
 - 游戏模式：新建游戏模式，将Pawn类改为新建的角色蓝图类
+### 动画
+- 混合空间1D，axis setting，拖入动画，采样插值。
+- 动画蓝图：
 

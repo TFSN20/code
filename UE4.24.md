@@ -60,3 +60,11 @@
 ### 常用节点
 - event tick每帧执行，For Each Loop with Break可跳出循环，branch布尔变量判断，custom event自定义事件。
 
+### 操控导入的角色
+- 新建文件夹，导入骨骼网格体，导入模型
+- 新建角色蓝图类，网格使用导入的骨骼网格体，并添加弹簧臂组件，弹簧臂组件添加摄像机组件（弹簧臂携带摄像机移动），旋转弹簧臂组件和骨骼网格体，保证朝向一致。
+- ：
+  - 移动节点：InputAxis MoveForward，MoveRight，Add Movement Input
+  - 获取实时向量：Get Control Rotation，Make Rotation
+- 新建游戏模式，将Pawn类改为新建的角色蓝图类
+

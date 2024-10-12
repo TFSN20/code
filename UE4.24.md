@@ -96,3 +96,4 @@
   - quite game
   - pause暂停游戏
   - UI only后键盘输入不可用。
+  - UI动画：在UI图标中添加自定义事件触发动画变量的play。

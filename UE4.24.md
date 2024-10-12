@@ -97,3 +97,6 @@
   - pause暂停游戏
   - UI only后键盘输入不可用。
   - UI动画：在UI图标中添加自定义事件触发动画变量的play。
+  - Set Game Paused 影响游戏逻辑，但不影响 UI：
+  - Set Game Paused(true) 会暂停与游戏世界相关的计时和行为，例如游戏角色、AI 和其他基于世界时间的系统。
+  - UI （如 Widget 蓝图）并不依赖于游戏世界时间，它使用独立的时间机制。因此，在暂停状态下，UI 的 Delay 节点仍然有效。

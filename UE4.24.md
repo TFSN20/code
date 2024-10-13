@@ -110,4 +110,6 @@
   - 对控件交互组件使用按下和松开指针键（press/release），指定鼠标左键触发。
   - set timer by function name：必须先执行一次函数，再延时执行，可循环执行，可中断，delay是延迟后执行，不可中断。
   - get all actors of class -> GET0 ->SET value效果等同get player controler -> get controled pawn -> cast to firstpersoncharacter -> SET value
-  - 
+- 66p 存档
+  - 存档插槽中添加需要恢复的变量，设置为可编辑实例和生成时公开，插槽中的文本框等数据数据输入口能进行数据绑定，即UI显示数据和变量进行绑定。
+  - 在存档主UI中将一个组件Is Variable，则创建其变量，然后通过creat widget的方式get组件这个变量，一般会将widget设置为变量使用。

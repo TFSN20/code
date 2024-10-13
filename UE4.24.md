@@ -109,3 +109,5 @@
   - 调试红线：添加控件交互组件，显示调试。
   - 对控件交互组件使用按下和松开指针键（press/release），指定鼠标左键触发。
   - set timer by function name：必须先执行一次函数，再延时执行，可循环执行，可中断，delay是延迟后执行，不可中断。
+  - get all actors of class -> GET0 ->SET value效果等同get player controler -> get controled pawn -> cast to firstpersoncharacter -> SET value
+  - 

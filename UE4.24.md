@@ -116,3 +116,6 @@
   - 存档slot：先creat widget（无add viewport），这时会将绑定的变量保留显示在这个组件蓝图上，对其赋值即可。
   - SaveGame蓝图：使用一种数据类型将恢复变量成箱，不需要可编辑实例和生成时公开。
   - creat save game可以获取SaveGame蓝图，将其提升为savegame_ref变量，使用set成箱变量，add->append可以附加子成箱变量。 savegame_ref->save game to slot可以将存档蓝图保存到文件。
+  - 游戏一开始就获取聚焦：玩家控制器 -> game only
+## 常用名称
+- UMG：主UI，对应Slot插槽

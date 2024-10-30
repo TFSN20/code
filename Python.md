@@ -1,3 +1,4 @@
+# Temp
 - 安装Python解释器时，勾选添加环境变量会将D:\ProgramFiles\Codes\Python\Python312\和D:\ProgramFiles\Codes\Python\Python312\Scripts路径添加到环境变量
 - 修改全局pip源，更改C:\ProgramData\pip\pip.ini(没有则创建)内容为（注意网址http后面有s，否则下载不了）
   ```
@@ -39,6 +40,8 @@
   #改变标准输出的默认编码
   sys.stdout=io.TextIOWrapper(sys.stdout.buffer,encoding='utf8')
   ```
+## 常见代码问题，报错
+- 变量未绑定：在函数或类中直接修改变量时会报次错误，因为解释器会将其当作局部变量，可以直接global 变量名称。
 ## pytorch
 - 安装:
   根据[官网](https://pytorch.org/)python版本和是否有英伟达显卡（没有选择则选择cpu）复制pip下载链接。

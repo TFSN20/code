@@ -61,6 +61,36 @@
     return {}
   }
   ```
+- 调用云函数之前先进行上传：
+  ```
+  wx.cloud.callFunction({
+    name: 'quickstartFunctions',
+    data: {
+      type: 'changeVote',  // 指定要调用的子函数
+      productId: '25e993b76723829b11c906ab79f782f8',
+      priceIndex:this.data.selectedOptionIndex
+    },
+    success: res => {
+      if (res.result.success) {
+        wx.showToast({
+          title: res.result.message,
+        });
+      } else {
+        wx.showToast({
+          title: res.result.message,
+          icon: 'none'
+        });
+      }
+    },
+    fail: err => {
+      wx.showToast({
+        title: '购买失败，请重试',
+        icon: 'none'
+      });
+      console.error('调用云函数失败', err);
+    }
+  });
+  ```
 - 目录与文件的解析规则:  
   - 当 require 的路径指向一个目录（如 ./getOpenId），Node.js 会尝试读取该目录下的 index.js 文件。
     这是因为 index.js 是一个目录默认入口文件，所以你可以写 require('./getOpenId') 或require('./getOpenId/index')，而不需要添加 .js 后缀。  

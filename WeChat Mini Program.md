@@ -47,10 +47,9 @@
   ```
 - changeVote.js：
   ```
-  // 云函数：decrementProductStock
   const cloud = require('wx-server-sdk');
   cloud.init({
-    env: 'tfsn20-wt-1gt71yjv8af8d282'
+    env: 'tfsn20-qqt-1gt71yjv8aqqf8d282'
   });
   
   const db = cloud.database();
@@ -67,7 +66,7 @@
     name: 'quickstartFunctions',
     data: {
       type: 'changeVote',  // 指定要调用的子函数
-      productId: '25e993b76723829b11c906ab79f782f8',
+      productId: '25essssssxxxxx9f782f8',
       priceIndex:this.data.selectedOptionIndex
     },
     success: res => {

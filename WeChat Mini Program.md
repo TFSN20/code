@@ -7,13 +7,13 @@
 - 规定div为view
 ### 云函数
 - 目录结构
-  cloudfunctions/
-  └── quickstartFunctions/
-    ├── getOpenId/
-    │   └── index.js      // getOpenId 逻辑
-    ├── changeVote.js     // changeVote 逻辑
-    ├── index.js          // 云函数入口文件
-    └── package.json
+  cloudfunctions/  
+  └── quickstartFunctions/  
+    ├── getOpenId/  
+    │   └── index.js      // getOpenId 逻辑  
+    ├── changeVote.js     // changeVote 逻辑  
+    ├── index.js          // 云函数入口文件  
+    └── package.json  
 - index.js
   ```
   const getOpenId = require('./getOpenId/index');

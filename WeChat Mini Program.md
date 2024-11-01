@@ -60,6 +60,10 @@
     const priceIndex = event.priceIndex;
     return {}
   }
+  ```
+- 目录与文件的解析规则:
+  当 require 的路径指向一个目录（如 ./getOpenId），Node.js 会尝试读取该目录下的 index.js 文件。这是因为 index.js 是一个目录默认入口文件，所以你可以写 require('./getOpenId') 或         require('./getOpenId/index')，而不需要添加 .js 后缀。  
+  当 require 的路径指向具体的文件（如 ./changeVote.js），如果省略 .js，Node.js 会尝试自动补全文件扩展名，但它会先尝试 .json、.node 等其他扩展名，再找到 .js 文件，因此并不总是能成功解析。所以直接写 require('./changeVote.js') 更加保险。
   
   
 

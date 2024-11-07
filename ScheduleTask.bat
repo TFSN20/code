@@ -1,18 +1,18 @@
 @echo off
-:: ¼ì²éÊÇ·ñÒÔ¹ÜÀíÔ±Éí·İÔËĞĞ
+
+:: æ£€æŸ¥æ˜¯å¦ä»¥ç®¡ç†å‘˜èº«ä»½è¿è¡Œ
 net session >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ÇëµÈ´ı...
+    echo è¯·ç­‰å¾…...
     powershell start-process -filepath '%0' -verb runas
     exit /b
 )
-
 set taskname=ConnectWiFi
-set taskpath=C:\Users\Administrator\Desktop\connect-wifi.bat
-set time=06:59
+set time=06:58
+set taskpath=%~dp0connect-wifi.bat
 
+:: åˆ›å»ºä»»åŠ¡
 schtasks /create /tn "%taskname%" /tr "%taskpath%" /sc daily /st %time% /f
 
-set message=ÈÎÎñ "%taskname%" ÒÑ³É¹¦´´½¨£¬²¢½«Ã¿ÌìÉÏÎç%time%ÔËĞĞ¡£
-echo %message%
+echo ä»»åŠ¡ "%taskname%" å·²æˆåŠŸåˆ›å»ºï¼Œå¹¶å°†æ¯å¤©ä¸Šåˆ%time%è¿è¡Œã€‚
 pause

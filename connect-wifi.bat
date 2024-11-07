@@ -1,5 +1,10 @@
 @echo off
+
 set ssid=zzuli-student
+set student_account=332211020770
+set student_account_pwd=2829992550Abc..
+
+echo Current date and time: %date% %time%
 
 echo Attempting to connect to WiFi network: %ssid%
 netsh wlan connect name="%ssid%"
@@ -31,10 +36,7 @@ if defined IP (
 )
 
 REM 准备登录请求参数
-set student_account=332211020770
-set student_account_pwd=2829992550Abc..
-set url=http://10.168.6.10:801/eportal/portal/login
-
+@REM set url=http://10.168.6.10:801/eportal/portal/login
 @REM REM 使用 curl 发送请求
 @REM curl -G "%url%" ^
 @REM     --data-urlencode "callback=dr1003" ^
@@ -60,8 +62,6 @@ set url=http://10.168.6.10:801/eportal/portal/login
 @REM pause
 
 REM 使用 curl 发送 GET 请求
-set "student_account=332211020770"
-set "student_account_pwd=2829992550Abc.."
 set "url=http://10.168.6.10:801/eportal/portal/login?callback=dr1003&login_method=1&user_account=%%2C0%%2C%student_account%@zzulis&user_password=%student_account_pwd%&wlan_user_ip=%IP%&wlan_user_ipv6=&wlan_user_mac=000000000000&wlan_ac_ip=10.168.6.9&wlan_ac_name=&jsVersion=4.2.1&terminal_type=1&lang=zh-cn&v=2014"
 
 curl "%url%"

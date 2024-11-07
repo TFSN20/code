@@ -1,8 +1,8 @@
 @echo off
 
 set ssid=zzuli-student
-set student_account=332211020770
-set student_account_pwd=2829992550Abc..
+set student_account=332211123456
+set student_account_pwd=21のjnasdk
 
 echo Current date and time: %date% %time%
 

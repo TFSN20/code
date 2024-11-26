@@ -6,3 +6,4 @@
 - 关于悬浮窗和UI上的界面操作（按钮点击），如果有耗时操作会堵塞，使其不能点击，使用threads.start(()=>{})解决。
 - jsBridge.callHandler里的网络请求必须threads.start。
 - 悬浮窗按钮点击后触发的函数若有堵塞，则必须先 yield myAwait(sleep_(10));
+- 关于UI的操作必须在ui.run里进行，且上层函数必须是ui.run

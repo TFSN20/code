@@ -19,9 +19,14 @@
   from ase.io import write
   write('zn_h2o_cluster.traj', zn_h2o_cluster)
   ```
-  查看
+  终端查看
   ```
   ase gui zn_h2o_cluster.traj
+  ```
+  代码里查看
+  ```
+  from ase.visualize import view
+  view(atoms)
   ```
 - 创建一个离子
   ```

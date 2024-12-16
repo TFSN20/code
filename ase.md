@@ -26,6 +26,7 @@
   ```
   设置 GPAW 计算器，保存计算器数据
   ```
+  from gpaw import GPAW, PW
   calc = GPAW(mode=PW(300), xc='PBE', txt='water_cluster_output.txt')
   water_cluster.calc = calc
   ```
@@ -34,6 +35,10 @@
   from ase.optimize import BFGS
   dyn = BFGS(water_cluster, trajectory='water_cluster_optiming.traj')
   dyn.run(fmax=0.1)
+  ```
+  获取能量
+  ```
+  water_cluster.get_potential_energy()
   ```
   终端查看
   ```

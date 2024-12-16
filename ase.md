@@ -19,28 +19,34 @@
   金金属为fcc堆积，晶胞长度为4.078 Å。固原子间之间最近的距离为面对角线上的4.078 Å*√2/2约等于2.9 Å.
   此时晶胞不可按照原来晶胞想象。
 ## 常用功能
-- 保存traj3D文件
+- 保存未优化的traj3D文件
   ```
   from ase.io import write
-  write('zn_h2o_cluster.traj', zn_h2o_cluster)
+  write('water_cluster_no_optim.traj', water_cluster)
+  ```
+  设置 GPAW 计算器，保存计算器数据
+  ```
+  calc = GPAW(mode=PW(300), xc='PBE', txt='water_cluster_output.txt')
+  water_cluster.calc = calc
+  ```
+  优化结构，保存优化中的动态traj3D文件
+  ```
+  from ase.optimize import BFGS
+  dyn = BFGS(water_cluster, trajectory='water_cluster_optiming.traj')
+  dyn.run(fmax=0.1)
   ```
   终端查看
   ```
-  ase gui zn_h2o_cluster.traj
+  ase gui zn_h2o_cluster_no_optim.traj
   ```
   代码里查看
   ```
   from ase.visualize import view
   view(atoms)
   ```
-- 保存动态3D文件
-  ```
-  dyn = BFGS(atoms, trajectory='name.traj')
-  dyn.run(fmax=0.1)
-  ```
 - 创建一个离子
   ```
   from ase import Atoms
   zn2_plus = Atoms('Zn', charges=[2.0])
   ```
-- 创建一个分子
+## 常见问题

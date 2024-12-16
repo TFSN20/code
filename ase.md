@@ -33,6 +33,11 @@
   from ase.visualize import view
   view(atoms)
   ```
+- 保存动态3D文件
+  ```
+  dyn = BFGS(atoms, trajectory='name.traj')
+  dyn.run(fmax=0.1)
+  ```
 - 创建一个离子
   ```
   from ase import Atoms

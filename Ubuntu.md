@@ -57,6 +57,11 @@
   ```
   touch filename.txt
   ```
+- 删除文件夹下所有内容 先cd到目标文件夹的父目录
+  ```
+  rm -rf /目标文件夹
+  ```
+  
 # 常见问题
 - -rw-r--r-- 1 tfsn20 tfsn20    0 Dec 16 10:32 my_script.py 能执行python3 my_script.py
   Python脚本不需要执行权限才能被运行。关键是Python解释器需要执行权限,而不是脚本本身。

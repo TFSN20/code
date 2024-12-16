@@ -61,6 +61,11 @@
   ```
   rm -rf /目标文件夹
   ```
+- 重命名
+  ```
+  mv name.py name2.py
+  ```
+  
   
 # 常见问题
 - -rw-r--r-- 1 tfsn20 tfsn20    0 Dec 16 10:32 my_script.py 能执行python3 my_script.py

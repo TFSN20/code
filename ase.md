@@ -19,7 +19,13 @@
   金金属为fcc堆积，晶胞长度为4.078 Å。固原子间之间最近的距离为面对角线上的4.078 Å*√2/2约等于2.9 Å.
   此时晶胞不可按照原来晶胞想象。
 ## 常用功能
-- 保存未优化的traj3D文件
+- 设置虚拟晶胞
+  ```
+  water_cluster.set_cell([20, 20, 20])  # 足够大的立方晶胞
+  water_cluster.center()  # 将体系置于晶胞中心
+  water_cluster.set_pbc(False)  # 关闭周期性边界条件
+  ```
+  保存未优化的traj3D文件
   ```
   from ase.io import write
   write('water_cluster_no_optim.traj', water_cluster)

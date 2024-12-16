@@ -44,3 +44,19 @@
   ```
   sudo apt install fenics
   ```
+# 常用命令
+- 查看文件和文件夹
+  ```
+  ls
+  ```
+- 查看文件和文件夹的权限
+  ```
+  ls -la
+  ```
+- 创建文件
+  ```
+  touch filename.txt
+  ```
+# 常见问题
+- -rw-r--r-- 1 tfsn20 tfsn20    0 Dec 16 10:32 my_script.py 能执行python3 my_script.py
+  Python脚本不需要执行权限才能被运行。关键是Python解释器需要执行权限,而不是脚本本身。

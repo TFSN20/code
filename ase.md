@@ -75,7 +75,8 @@
     from ase.visualize import view
     view(atoms)
     ```
-- 并行计算
+- 并行计算    
+  计算步骤中有保存文件时可能需要等待一会才会保存     
   使用逻辑cpu
   ```
   mpiexec --use-hwthread-cpus -np 4 gpaw python cal_zn2+_6h2o.py

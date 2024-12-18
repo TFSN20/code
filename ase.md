@@ -86,6 +86,13 @@
     ```
     mpiexec --oversubscribe -np 4 gpaw python cal_zn2+_6h2o.py
     ```
+- gpu计算
+  - 仅仅支持PW
+  - 示例代码
+    ```
+    from gpaw.new.ase_interface import GPAW
+    GPAW(mode=PW(cutoff_energy), xc='PBE', charge=2.0, parallel={'domain': 1, 'gpu':True},txt=f'output.txt')
+    ```
 - 创建一个离子
   ```
   from ase import Atoms

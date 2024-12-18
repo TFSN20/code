@@ -94,7 +94,7 @@
     GPAW(mode=PW(cutoff_energy), xc='PBE', charge=2.0, parallel={'domain': 1, 'gpu':True},txt=f'output.txt')
     ```
 - 修改模型
-  - 运行ase gui 文件名.traj，直接修改，注意增加原子时坐标单位为nm
+  - 运行ase gui 文件名.traj，直接修改，注意增加原子时坐标单位为nm.可基于全局坐标或选中原子坐标进行偏移
 ## 常见问题
 ### 粒子之间的距离
 ### 采用哪种优化方法

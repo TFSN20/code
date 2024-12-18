@@ -76,15 +76,16 @@
     view(atoms)
     ```
 - 并行计算    
-  计算步骤中有保存文件时可能需要等待一会才会保存     
-  使用逻辑cpu
-  ```
-  mpiexec --use-hwthread-cpus -np 4 gpaw python cal_zn2+_6h2o.py
-  ```
-  或强制使用
-  ```
-  mpiexec --oversubscribe -np 4 gpaw python cal_zn2+_6h2o.py
-  ```
+  - 计算步骤中有保存文件时可能需要等待一会才会保存
+  - 打印也有延迟，bug？？？ 
+  - 使用逻辑cpu
+    ```
+    mpiexec --use-hwthread-cpus -np 4 gpaw python cal_zn2+_6h2o.py
+    ```
+  - 强制使用
+    ```
+    mpiexec --oversubscribe -np 4 gpaw python cal_zn2+_6h2o.py
+    ```
 - 创建一个离子
   ```
   from ase import Atoms

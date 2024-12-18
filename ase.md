@@ -34,7 +34,7 @@
   - 设置 GPAW 计算器，保存计算器数据
     ```
     from gpaw import GPAW, PW
-    calc = GPAW(mode=PW(300), xc='PBE', txt='water_cluster_output.txt')
+    calc = GPAW(mode=PW(300), xc='PBE', charge=0,txt='water_cluster_output.txt')
     water_cluster.calc = calc
     ```
   - 优化结构，保存优化中的动态traj3D文件
@@ -54,7 +54,7 @@
     from gpaw import GPAW, PW
     
     # 设置 GPAW 计算器
-    calc = GPAW(mode=PW(300), xc='PBE', txt='zn2_plus_ion_output_keeping.txt')
+    calc = GPAW(mode=PW(300), xc='PBE', charge=0, txt='zn2_plus_ion_output_keeping.txt')
     # 加载轨迹文件并获取最后一步的结构
     traj = Trajectory('zn2_plus_ion_optiming.traj', 'r')  # 以只读模式加载轨迹
     system = traj[-1]  # 获取轨迹文件中的最后一步结构

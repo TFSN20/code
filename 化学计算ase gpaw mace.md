@@ -1,3 +1,4 @@
+# ASE
 - 单独ase可在windows上运行，gpaw需要在linux系统上运行（如Ubuntu）。
 - Ubuntu可视化需要ssh远程连接桌面，在Ubuntu上保存traj文件后，可在windows平台上使用```ase gui myatoms.traj```运行查看3D文件。
 - 安装gpaw数据库
@@ -121,5 +122,10 @@
   - 逐步增加 cutoff energy：设置一系列逐渐增大的 𝐸cutoff。
   - 计算总能量：对每个 𝐸cutoff值计算体系的总能量。
   - 分析收敛性：观察能量变化，当能量变化小于设定阈值（如 <1meV/atom）时，认为收敛。
+# MACE
+- mace-torch
+- 优点是几乎不需要设置什么参数，只需要指定原子类型和位置即可，且计算速度极快。
+- 缺点是计算不准确，且无法计算含有电荷的体系。
+- 凭借其优点，我们可以快速确定使用GPAW计算时的一些参数，如原子收敛位置。
 
 

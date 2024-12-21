@@ -7,6 +7,21 @@
   gpaw install-data /home/tfsn20/paw_datasets
   ```
   等待下载，按下y
+## 使用colab
+- gpaw前奏
+  ```
+  !sudo apt update
+  !sudo apt install -y build-essential python3-dev python3-pip libopenblas-dev libfftw3-dev libxc-dev libscalapack-mpi-dev
+  ```
+- 下载库
+  ```
+  !pip install ase gpaw
+  ```
+- 下载数据库
+  ```
+  !gpaw install-data /home/tfsn20/paw_datasets
+  ```
+  
 ## 例子
 - 金线
   ```

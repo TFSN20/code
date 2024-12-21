@@ -19,7 +19,7 @@
   ```
 - 下载数据库
   ```
-  !gpaw install-data /home/tfsn20/paw_datasets
+  !gpaw install-data /paw_dataset
   ```
   
 ## 例子

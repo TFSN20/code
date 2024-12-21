@@ -21,7 +21,14 @@
   ```
   !gpaw install-data /paw_datasets
   ```
-  
+- 查看cpu配置
+  ```
+  !lscpu
+  ```
+- 查看显卡配置
+  ```
+  !nvidia-smi
+  ```
 ## 例子
 - 金线
   ```

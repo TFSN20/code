@@ -1,4 +1,5 @@
 # ASE
+## GUI 操作
 - 单独ase可在windows上运行，gpaw需要在linux系统上运行（如Ubuntu）。
 - Ubuntu可视化需要ssh远程连接桌面，在Ubuntu上保存traj文件后，可在windows平台上使用```ase gui myatoms.traj```运行查看3D文件。
 - 安装gpaw数据库

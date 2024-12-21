@@ -31,7 +31,7 @@
   ```
 - root强制多核运行
   ```
-  mpiexec --oversubscribe --allow-run-as-root -np 4 gpaw python cal_g_2.3.py
+  !mpiexec --oversubscribe -np 4 --allow-run-as-root gpaw python '/content/drive/MyDrive/cal/graphene_test/cal_graphene_colab.py'
   ```
 ## 例子
 - 金线

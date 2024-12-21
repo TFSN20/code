@@ -33,6 +33,18 @@
   ```
   !mpiexec --oversubscribe -np 4 --allow-run-as-root gpaw python '/content/drive/MyDrive/cal/graphene_test/cal_graphene_colab.py'
   ```
+### 问题
+- 有些函数官方未实现cuda版
+  ```
+  /usr/local/lib/python3.10/dist-packages/gpaw/new/c.py in pwlfc_expand_gpu(f_Gs, emiGR_Ga, Y_GL, l_s, a_J, s_J, cc, f_GI, I_J)
+     70                      l_s, a_J, s_J,
+     71                      cc, f_GI, I_J):
+  ---> 72     print(xp)
+     73     f_GI = xp.empty((G2 - G1, self.nI), complex)
+     74     I1 = 0
+
+  NotImplementedError: 
+  ```
 ## 例子
 - 金线
   ```

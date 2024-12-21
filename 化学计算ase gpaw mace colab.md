@@ -29,6 +29,10 @@
   ```
   !nvidia-smi
   ```
+- root强制多核运行
+  ```
+  mpiexec --oversubscribe --allow-run-as-root -np 4 gpaw python cal_g_2.3.py
+  ```
 ## 例子
 - 金线
   ```

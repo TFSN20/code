@@ -159,6 +159,7 @@
   ![image](https://github.com/user-attachments/assets/59f31f50-0d7a-4bdc-a7ad-70f75f9d254f)    
   手动设置 vs 默认 kpts 的区别    
   ![image](https://github.com/user-attachments/assets/5a5d4854-0319-4100-8d8f-17ca846071c4)
+- 石墨烯这种假如是5x5x1，加了kZ值计算是真的稳定，但是计算时间变长。
 ### 测试cutoff_energy时不需要优化函数吗
 - 在测试 cutoff energy 时，不需要优化函数，通常是直接计算体系的总能量，因为此时的目的是评估平面波截断能量对总能量的影响，而不是对结构进行优化。
 - 目标：确定平面波截断能量𝐸cutoff的收敛性，即找到一个足够高的 Ecutoff，使总能量收敛到稳定值。

@@ -33,6 +33,17 @@
   ```
   !mpiexec --oversubscribe -np 4 --allow-run-as-root gpaw python '/content/drive/MyDrive/cal/graphene_test/cal_graphene_colab.py'
   ```
+- trajectory路径
+  ```
+  BFGS(system, trajectory='/home/tfsn20/python/'+f'{file_name_prefix}_{cutoff_energy}_{fmax}_{other_info}_optiming.traj')
+  ```
+- 当前用户或~目录
+  colob是虚拟环境
+  ```
+  import getpass
+  print(getpass.getuser())
+  ```
+
 ### 问题
 - 有些函数官方未实现cuda版
   ```

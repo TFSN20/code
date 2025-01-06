@@ -108,11 +108,14 @@
     from ase.io import Trajectory
     from ase.optimize import BFGS
     from gpaw import GPAW, PW
+    from ase.visualize import view
+    from ase.constraints import Hookean, FixAtoms
+    path_cal_res = os.path.dirname(os.path.abspath(__file__))
     
     # 设置 GPAW 计算器
     calc = GPAW(mode=PW(300), xc='PBE', charge=0.0, txt='zn2_plus_ion_output_keeping.txt')
     # 加载轨迹文件并获取最后一步的结构
-    traj = Trajectory('zn2_plus_ion_optiming.traj', 'r')  # 以只读模式加载轨迹
+    traj = Trajectory(path_cal_res / Path('g_C-COOH_constraint_zn2+_no_constraint_optiming_keeping - 副本.traj'), 'r')  # 以只读模式加载轨迹
     system = traj[-1]  # 获取轨迹文件中的最后一步结构
     
     # 重新设置计算器

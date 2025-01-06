@@ -114,10 +114,10 @@
     # 加载轨迹文件并获取最后一步的结构
     traj = Trajectory('zn2_plus_ion_optiming.traj', 'r')  # 以只读模式加载轨迹
     system = traj[-1]  # 获取轨迹文件中的最后一步结构
-    print(system)
     
     # 重新设置计算器
     system.calc=calc
+    print(system)
     
     # 继续优化并保存到新的轨迹文件
     dyn = BFGS(system, trajectory='zn2_plus_ion_optiming_keeping.traj')

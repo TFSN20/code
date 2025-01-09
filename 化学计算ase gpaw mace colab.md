@@ -206,5 +206,8 @@
   chmod +x bader
   ```
 - 添加到command可调用，在~/.bashrc文件。
+  ```
+  export PATH=~/bader:${PATH}
+  ```
 
 

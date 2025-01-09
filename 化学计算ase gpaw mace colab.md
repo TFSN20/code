@@ -205,9 +205,10 @@
   ```
   chmod +x bader
   ```
-- 添加到command可调用，在~/.bashrc文件。
+- 添加到command可调用，在~/.bashrc文件，目录是文件的上级目录，即不包含文件每次，只是上级目录，即最后没有/
   ```
   export PATH=~/bader:${PATH}
+  export PATH=~:${PATH}
   ```
 
 

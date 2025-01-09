@@ -194,5 +194,17 @@
 - 优点是几乎不需要设置什么参数，只需要指定原子类型和位置即可，且计算速度极快。
 - 缺点是计算不准确，且无法计算含有电荷的体系。
 - 凭借其优点，我们可以快速确定使用GPAW计算时的一些参数，如原子收敛位置。
+# Bader
+## 下载安装
+- 链接：https://theory.cm.utexas.edu/henkelman/code/bader/
+- 解压
+  ```
+  tar -zxvf bader_lnx_64.tar.gz
+  ```
+- 设置为可执行文件
+  ```
+  chmod +x bader
+  ```
+- 添加到command可调用，在~/.bashrc文件。
 
 

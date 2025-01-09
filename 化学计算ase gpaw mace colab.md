@@ -207,8 +207,8 @@
   ```
 - 添加到command可调用，在~/.bashrc文件，目录是文件的上级目录，即不包含文件每次，只是上级目录，即最后没有/
   ```
-  export PATH=~/bader:${PATH}
-  export PATH=~:${PATH}
+  export PATH=~/bader:${PATH}（一半新建bader目录将bader文件放进去）或
+  export PATH=~:${PATH}（一半不用，因为这相当于把整个用户目录放入环境变量中）
   ```
 
 

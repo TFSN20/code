@@ -463,5 +463,9 @@
   export PATH=~/bader:${PATH}（一半新建bader目录将bader文件放进去）或
   export PATH=~:${PATH}（一半不用，因为这相当于把整个用户目录放入环境变量中）
   ```
+- 错误：TypeError: unhashable type: 'PolyData'
+  ```
+  pip install https://github.com/enthought/mayavi/zipball/main
+  ```
 
 

@@ -135,6 +135,193 @@
     from ase.visualize import view
     view(atoms)
     ```
+- bader和电子密度
+  - 电子密度cube
+    ```
+    import os
+    from ase.build import molecule
+    from ase.io import write
+    from ase.units import Bohr
+    from gpaw import GPAW, PW
+    from gpaw.analyse.hirshfeld import HirshfeldPartitioning
+    from ase.io import Trajectory
+    from pathlib import Path
+    
+    traj_num = 19
+    
+    path_big_file = '/mnt/d/cal'
+    path_cal_res = os.path.dirname(os.path.abspath(__file__))
+    new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res))
+    os.makedirs(new_dir_path, exist_ok=True)
+    
+    traj = Trajectory(path_cal_res / Path("g_C-OH_constraint_optiming_keeping.traj"), 'r') 
+    system = traj[traj_num]
+    print(system)
+    # calc = GPAW(mode=PW(400), xc='PBE', charge=+2.0, kpts=(2,2,1), txt=path_cal_res / Path('system1_output1.txt'))
+    calc = GPAW(mode='fd', xc='PBE', kpts=(2,2,1), txt=path_cal_res / Path('system1_output1_fd1.txt'))
+    system.calc = calc
+    print(system.get_potential_energy())
+    calc.write(new_dir_path / Path('system1_fd1.paw'), mode='all')
+    
+    
+    # write Hirshfeld charges out
+    hf = HirshfeldPartitioning(system.calc)
+    for atom, charge in zip(system, hf.get_charges()):
+        atom.charge = charge
+    # system.write('Hirshfeld.traj') # XXX Trajectory writer needs a fix
+    system.copy().write(new_dir_path / Path('Hirshfeld_fd1.traj'))
+    
+    # create electron density cube file ready for bader
+    rho = system.calc.get_all_electron_density(gridrefinement=4)
+    write(new_dir_path / Path('density.cube'), system, data=rho * Bohr**3)
+    ```
+  - 分析密度立方体文件
+    ```
+    ~/bader -p all_atom -p atom_index density.cube
+    ```
+  - 中间切面数据by density.cube and AtIndex.cube
+    ```
+    import os
+    import pickle
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from ase.io.cube import read_cube_data
+    from pathlib import Path
+    
+    section = 'x'
+    min_den = 0.1
+    max_den = 1
+    split_num = 200
+    xmin=-5
+    xmax=5
+    ymin=-5
+    ymax=5
+    
+    path_cal_res = os.path.dirname(os.path.abspath(__file__))
+    dens, atoms = read_cube_data(path_cal_res / Path('density.cube'))
+    bader, atoms = read_cube_data(path_cal_res / Path('AtIndex.cube'))
+    
+    x0, y0, z0 = atoms.positions[1]
+    if section == 'x':
+        x = len(dens) // 2
+        dens = dens[x]
+        bader = bader[x]
+        y = np.linspace(0, atoms.cell[1, 1], len(dens), endpoint=False) - y0
+        z = np.linspace(0, atoms.cell[2, 2], len(dens[0]), endpoint=False) - z0
+    
+        print(y.shape, z.shape, dens.shape, bader.shape)
+        print(atoms.positions)
+        print(dens.min(), dens.mean(), dens.max())
+        print(bader.min(), bader.mean(), bader.max())
+        plt.figure(figsize=(5, 5))
+    
+        # Add color bar
+        cbar = plt.colorbar(plt.contourf(z, y, dens, np.linspace(min_den, max_den, split_num)))
+        cbar.ax.set_ylabel('Density', rotation=-90, va="bottom")
+        plt.contour(z, y, bader, [1.75], colors='k')
+    
+        # 确保 x 和 y 坐标轴等比例
+        plt.gca().set_aspect('equal', adjustable='box')
+        plt.axis(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+        plt.show()
+    elif section == 'y':
+        # 取 y 中间切面
+        y = len(dens[0]) // 2
+        dens = dens[:, y, :]
+        bader = bader[:, y, :]
+        
+        # 定义 x 和 z 坐标
+        x = np.linspace(0, atoms.cell[0, 0], len(dens), endpoint=False) - x0
+        z = np.linspace(0, atoms.cell[2, 2], len(dens[0]), endpoint=False) -z0
+        
+        print(x.shape, z.shape, dens.shape, bader.shape)
+        plt.figure(figsize=(5, 5))
+        
+        # 绘制密度图
+        cbar = plt.colorbar(plt.contourf(z, x, dens, np.linspace(min_den, max_den, split_num)))  # 注意：x 和 z 对应坐标
+        cbar.ax.set_ylabel('Density', rotation=-90, va="bottom")
+        # 绘制等值线
+        plt.contour(z, x, bader, [1.5], colors='k')
+    
+        # 确保 x 和 y 坐标轴等比例
+        plt.gca().set_aspect('equal', adjustable='box')
+        # 设置坐标轴范围
+        plt.axis(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+        plt.show()
+        # plt.savefig('h2o-bader-ycut.png')
+    elif section == 'z':
+        z = len(dens[0][0]) // 2
+        dens = dens[:, :, z]
+        bader = bader[:, :, z]
+    
+        # 定义 x 和 y 坐标
+        x = np.linspace(0, atoms.cell[0, 0], len(dens), endpoint=False) - x0
+        y = np.linspace(0, atoms.cell[1, 1], len(dens[0]), endpoint=False) -y0
+    
+        print(x.shape, y.shape, dens.shape, bader.shape)
+        plt.figure(figsize=(5, 5))
+    
+        # 绘制密度图
+        cbar = plt.colorbar(plt.contourf(x, y, dens.T, np.linspace(min_den, max_den, split_num)) ) # 转置数据以适应坐标系
+        cbar.ax.set_ylabel('Density', rotation=-90, va="bottom")
+        # 绘制等值线
+        plt.contour(x, y, bader.T, [1.5], colors='k')
+    
+        # 确保 x 和 y 坐标轴等比例
+        plt.gca().set_aspect('equal', adjustable='box')
+    
+        # 设置坐标轴范围
+        plt.axis(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+        plt.show()
+    ```
+  - 导出三维x, y, z, den数据
+    ```
+    import numpy as np
+    import pandas as pd
+    from ase.io.cube import read_cube_data
+    from pathlib import Path
+    import os
+    
+    # 读取数据
+    path_cal_res = os.path.dirname(os.path.abspath(__file__))
+    dens, atoms = read_cube_data(path_cal_res / Path('density.cube'))
+    
+    # 获取数组的形状
+    nx, ny, nz = dens.shape  # (160, 208, 176)
+    
+    # 生成 x, y, z 坐标
+    x = np.linspace(0, atoms.cell[0, 0], nx, endpoint=False)
+    y = np.linspace(0, atoms.cell[1, 1], ny, endpoint=False)
+    z = np.linspace(0, atoms.cell[2, 2], nz, endpoint=False)
+    
+    # 创建网格并展平
+    x_grid, y_grid, z_grid = np.meshgrid(x, y, z, indexing='ij')
+    
+    # 展平网格和强度数据
+    x_flat = x_grid.ravel()
+    y_flat = y_grid.ravel()
+    z_flat = z_grid.ravel()
+    dens_flat = dens.ravel()  # 强度值（密度）
+    
+    # 筛选强度在范围 [0.01, 1.2] 内的点
+    mask = (dens_flat >= 0.01) & (dens_flat <= 1.2)
+    
+    # 只保留符合条件的坐标和强度
+    x_filtered = x_flat[mask]
+    y_filtered = y_flat[mask]
+    z_filtered = z_flat[mask]
+    dens_filtered = dens_flat[mask]
+    
+    # 创建 DataFrame 并保存为 CSV
+    data = np.column_stack((x_filtered, y_filtered, z_filtered, dens_filtered))
+    df = pd.DataFrame(data, columns=['x', 'y', 'z', 'intensity'])
+    
+    # 保存为 CSV 文件
+    output_file = 'filtered_density_data.csv'
+    df.to_csv(output_file, index=False)
+    
+    print(f"筛选后的数据已保存至 {output_file}")
+    ```
 - 并行计算    
   - 计算步骤中有保存文件时可能需要等待一会才会保存
   - 打印也有延迟，bug？？？ 

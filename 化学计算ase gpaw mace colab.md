@@ -189,6 +189,7 @@
     from pathlib import Path
     
     section = 'x'
+    atom_index_of_interest = 1 #图像中心是 原子index为1
     min_den = 0.1
     max_den = 1
     split_num = 200
@@ -201,7 +202,7 @@
     dens, atoms = read_cube_data(path_cal_res / Path('density.cube'))
     bader, atoms = read_cube_data(path_cal_res / Path('AtIndex.cube'))
     
-    x0, y0, z0 = atoms.positions[1]
+    x0, y0, z0 = atoms.positions[atom_index_of_interest]
     if section == 'x':
         x = len(dens) // 2
         dens = dens[x]

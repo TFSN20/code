@@ -322,6 +322,71 @@
     
     print(f"筛选后的数据已保存至 {output_file}")
     ```
+  - 绘制三维密度图
+    ```
+    import numpy as np
+    import pandas as pd
+    from mayavi import mlab
+    
+    # 加载筛选后的数据
+    data = pd.read_csv('filtered_density_data.csv')
+    
+    # 提取坐标和强度
+    x = data['x'].values
+    y = data['y'].values
+    z = data['z'].values
+    intensity = data['intensity'].values
+    
+    """ color """
+    def generate_lut(start_rgba, end_rgba, n_colors=256):
+        """
+        生成颜色查找表 (LUT)。
+        
+        参数：
+        - start_rgba: list or tuple，起始颜色和透明度 [R, G, B, A]，每个值范围 0-255。
+        - end_rgba: list or tuple，末尾颜色和透明度 [R, G, B, A]，每个值范围 0-255。
+        - n_colors: int，生成的渐变分段数，默认 256。
+    
+        返回：
+        - lut: numpy.ndarray，大小为 (n_colors, 4) 的 LUT 数组。
+        """
+        # 创建线性渐变的 LUT
+        start_rgba = np.array(start_rgba, dtype=np.float32)
+        end_rgba = np.array(end_rgba, dtype=np.float32)
+        lut = np.zeros((n_colors, 4), dtype=np.uint8)
+    
+        # 线性插值计算每个通道的值
+        for i in range(4):  # 对 RGBA 四个通道分别计算
+            lut[:, i] = np.linspace(start_rgba[i], end_rgba[i], n_colors)
+    
+        return lut
+    
+    
+    
+    # 绘制三维点云，点的大小和颜色根据强度值变化
+    mlab.figure('Density Visualization', bgcolor=(1, 1, 1), size=(800, 600))
+    _ = mlab.points3d(x, y, z, intensity, scale_mode='none', scale_factor=0.2, colormap='viridis')
+    
+    
+    # 定义起始和末尾颜色以及透明度
+    start_color = [68, 1, 84, 0]   # 起始 [R, G, B, A]
+    end_color = [253, 231, 37, 255]   # 结束 [R, G, B, A]
+    n_steps = abs(20)  # 分段数
+    # 生成 LUT
+    lut = generate_lut(start_color, end_color, n_steps)
+    
+    # 修改lut
+    _.module_manager.scalar_lut_manager.lut.table = lut
+    
+    # 添加坐标轴
+    mlab.axes(xlabel='X', ylabel='Y', zlabel='Z', color=(0, 0, 0))
+    
+    # 添加标题
+    mlab.title('3D Density Plot', size=0.5)
+    
+    # 显示图形
+    mlab.show()
+    ```
 - 并行计算    
   - 计算步骤中有保存文件时可能需要等待一会才会保存
   - 打印也有延迟，bug？？？ 

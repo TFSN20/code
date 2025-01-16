@@ -467,5 +467,50 @@
   ```
   pip install https://github.com/enthought/mayavi/zipball/main
   ```
+## 电子密度
+- 代码
+  ```
+  import os
+  from ase.build import molecule
+  from ase.io import write
+  from ase.units import Bohr
+  from gpaw import GPAW, PW
+  from gpaw.analyse.hirshfeld import HirshfeldPartitioning
+  from ase.io import Trajectory
+  from pathlib import Path
+  
+  # 选择轨迹名称和index
+  traj_name = 'zn2+__optiming.traj'
+  traj_index = -1
+  
+  
+  path_big_file = '/mnt/d/cal'
+  path_cal_res = os.path.dirname(os.path.abspath(__file__))
+  # 有时一个目录下可能有许多traj文件都需要电子密度 则os.path.basename(path_cal_res)+flag
+  new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+'zn2+')
+  os.makedirs(new_dir_path, exist_ok=True)
+  
+  traj = Trajectory(path_cal_res / Path(traj_name), 'r') 
+  system = traj[traj_index]
+  
+  # calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=path_cal_res / Path('system1_output1.txt'))
+  calc = GPAW(mode='fd', xc='PBE', h=0.2, charge=+2.0, txt=path_cal_res / Path('system_output_fd.txt'))
+  system.calc = calc
+  print(system)
+  print(system.get_potential_energy())
+  calc.write(new_dir_path / Path('system1_fd.paw'), mode='all')
+  
+  
+  # write Hirshfeld charges out
+  hf = HirshfeldPartitioning(system.calc)
+  for atom, charge in zip(system, hf.get_charges()):
+      atom.charge = charge
+  # system.write('Hirshfeld.traj') # XXX Trajectory writer needs a fix
+  system.copy().write(new_dir_path / Path('Hirshfeld_fd.traj'))
+  
+  # create electron density cube file ready for bader
+  rho = system.calc.get_all_electron_density(gridrefinement=2)
+  write(new_dir_path / Path('density.cube'), system, data=rho * Bohr**3)
+  ```
 
 

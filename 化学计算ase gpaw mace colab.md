@@ -467,8 +467,8 @@
   ```
   pip install https://github.com/enthought/mayavi/zipball/main
   ```
-## 电子密度
-- 代码
+## 电子密度,bader电荷，静电势
+- density.cube代码（h=0.2和gridrefinement=2对应0.2/2=0.1，对应静电势）
   ```
   import os
   from ase.build import molecule
@@ -512,5 +512,96 @@
   rho = system.calc.get_all_electron_density(gridrefinement=2)
   write(new_dir_path / Path('density.cube'), system, data=rho * Bohr**3)
   ```
+- 分析密度立方体文件
+  ```
+  ~/bader -p all_atom -p atom_index density.cube
+  ```
+- 三维多等值面电子密度图像
+  ```
+  import numpy as np
+  from ase.io.cube import read_cube_data
+  from mayavi import mlab
+  from pathlib import Path
+  import os
+  
+  from collections import namedtuple
+  
+  ElementInfo = namedtuple('ElementInfo', ['radius', 'color'])
+  element_data = {
+      "H":    ElementInfo(radius=0.32, color=(1.00, 1.00, 1.00)),
+      "C":    ElementInfo(radius=0.77, color=(0.56, 0.56, 0.56)),
+      "O":    ElementInfo(radius=0.66, color=(1.00, 0.05, 0.05)),
+      "F":    ElementInfo(radius=0.64, color=(0.56, 0.88, 0.31)),
+      "Zn":   ElementInfo(radius=1.25, color=(0.49, 0.50, 0.69)),
+      # 其他元素在这里添加
+  }
+  def get_element_info(symbol):
+      symbol = symbol.capitalize()  # 确保符号首字母大写
+      if symbol in element_data:
+          return element_data[symbol]
+      else:
+          return ElementInfo(radius=None, color=None)  # 如果元素不存在，返回None值
+  
+  # 读取数据
+  path_cal_res = os.path.dirname(os.path.abspath(__file__))
+  dens, atoms = read_cube_data(path_cal_res / Path('density.cube'))
+  
+  
+  print(dens.max())
+  # 限制 dens 到 [0.001, 1.2]
+  dens = np.clip(dens, 0.001, 1.9)
+  
+  
+  
+  # 获取网格坐标
+  nx, ny, nz = dens.shape
+  x = np.linspace(0, atoms.cell[0, 0], nx, endpoint=False)
+  y = np.linspace(0, atoms.cell[1, 1], ny, endpoint=False)
+  z = np.linspace(0, atoms.cell[2, 2], nz, endpoint=False)
+  
+  # 创建三维网格
+  x_grid, y_grid, z_grid = np.meshgrid(x, y, z, indexing='ij')
+  
+  # 绘制等值面
+  mlab.figure('Density Isosurface', bgcolor=(1, 1, 1), size=(800, 600))
+  
+  # 选择等值面
+  contours = list(np.linspace(0.01,1.9,10))
+  # contours = [0.001, 0.1, 0.5, 1]
+  # contours = [0.001]
+  contour = mlab.contour3d(x_grid, y_grid, z_grid, dens, contours=contours, colormap='viridis')
+  
+  
+  # 设置透明度
+  contour.actor.property.opacity = 0.08  # 透明度范围 0.0（完全透明）到 1.0（完全不透明）
+  
+  
+  # 原子数据 xyzr
+  atoms_space_info = atoms.get_positions()
+  atoms_sysmbol = atoms.get_chemical_symbols()
+  
+  
+  # Create spheres
+  for i, atom in enumerate(atoms_space_info):
+      x, y, z = atom
+      element_info = get_element_info(atoms_sysmbol[i])
+      mlab.points3d(x, y, z, scale_factor=element_info.radius/10, color=element_info.color, resolution=32, opacity=0.9)
+  
+  
+  # 显示'viridis'色带，对应数值dens的0.001到1.2
+  colorbar = mlab.colorbar(contour, title='Density', orientation='vertical', nb_labels=13)
+  
+  # 设置刻度数字颜色为黑色
+  colorbar.scalar_bar.unconstrained_font_size = True  # 确保字体大小可调
+  colorbar.label_text_property.font_size = 10  # Increase font size
+  colorbar.label_text_property.color = (0, 0, 0)  # RGB格式，黑色为 (0, 0, 0)
+  colorbar.title_text_property.color = (0, 0, 0)  # Black color for the title
+  colorbar.title_text_property.font_size = 14  # Increase font size
+  
+  
+  # 显示等值面
+  mlab.show()
+  ```
+
 
 

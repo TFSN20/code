@@ -512,6 +512,42 @@
   rho = system.calc.get_all_electron_density(gridrefinement=2)
   write(new_dir_path / Path('density.cube'), system, data=rho * Bohr**3)
   ```
+- esp.cube代码
+  ```
+  from ase.build import molecule
+  from ase.io import write
+  from ase.units import Bohr
+  from gpaw import GPAW,PW
+  from ase.io import Trajectory
+  
+  from pathlib import Path
+  import os
+  
+  
+  # 选择轨迹名称和index
+  traj_name = 'zn2+__optiming.traj'
+  traj_index = -1
+  
+  
+  path_big_file = '/mnt/d/cal'
+  path_cal_res = os.path.dirname(os.path.abspath(__file__))
+  # 有时一个目录下可能有许多traj文件都需要电子密度 则os.path.basename(path_cal_res)+flag
+  new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+'zn2+')
+  os.makedirs(new_dir_path, exist_ok=True)
+  
+  traj = Trajectory(path_cal_res / Path(traj_name), 'r') 
+  system = traj[traj_index]
+  
+  system.calc = GPAW(xc='PBE',
+                   mode=PW(400),
+                   charge=+2.0,
+                   txt=new_dir_path / Path('pw.txt'))
+  print(system)
+  system.get_potential_energy()
+  system.calc.write(new_dir_path / Path('pw.gpw'))
+  v = system.calc.get_electrostatic_potential()
+  write(new_dir_path / Path('esp.cube'), system, data=v)
+  ```
 - 分析密度立方体文件
   ```
   ~/bader -p all_atom -p atom_index density.cube

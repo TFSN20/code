@@ -541,9 +541,10 @@
   system.calc = GPAW(xc='PBE',
                    mode=PW(400),
                    charge=+2.0,
+                   h=0.2,
                    txt=new_dir_path / Path('pw.txt'))
   print(system)
-  system.get_potential_energy()
+  print(system.get_potential_energy())
   system.calc.write(new_dir_path / Path('pw.gpw'))
   v = system.calc.get_electrostatic_potential()
   write(new_dir_path / Path('esp.cube'), system, data=v)
@@ -621,7 +622,8 @@
   for i, atom in enumerate(atoms_space_info):
       x, y, z = atom
       element_info = get_element_info(atoms_sysmbol[i])
-      mlab.points3d(x, y, z, scale_factor=element_info.radius/10, color=element_info.color, resolution=32, opacity=0.9)
+      # 默认使用element_info.radius/2的半径渲染原子，防止等值面看不清晰
+      mlab.points3d(x, y, z, scale_factor=element_info.radius/2, color=element_info.color, resolution=32, opacity=0.9)
   
   
   # 显示'viridis'色带，对应数值dens的0.001到1.2
@@ -638,6 +640,115 @@
   # 显示等值面
   mlab.show()
   ```
+- 静电势3d图像代码：
+  ```
+  import numpy as np
+  from ase.io.cube import read_cube_data
+  from mayavi import mlab
+  from pathlib import Path
+  import os
+  import matplotlib.pyplot as plt
+  from scipy.spatial import Delaunay
+  
+  from collections import namedtuple
+  
+  ElementInfo = namedtuple('ElementInfo', ['radius', 'color'])
+  element_data = {
+      "H":    ElementInfo(radius=0.32, color=(1.00, 1.00, 1.00)),
+      "C":    ElementInfo(radius=0.77, color=(0.56, 0.56, 0.56)),
+      "O":    ElementInfo(radius=0.66, color=(1.00, 0.05, 0.05)),
+      "F":    ElementInfo(radius=0.64, color=(0.56, 0.88, 0.31)),
+      "Zn":   ElementInfo(radius=1.25, color=(0.49, 0.50, 0.69)),
+      # 其他元素在这里添加
+  }
+  def get_element_info(symbol):
+      symbol = symbol.capitalize()  # 确保符号首字母大写
+      if symbol in element_data:
+          return element_data[symbol]
+      else:
+          return ElementInfo(radius=None, color=None)  # 如果元素不存在，返回None值
+  
+  
+  # 读取数据
+  path_cal_res = os.path.dirname(os.path.abspath(__file__))
+  dens, atoms0 = read_cube_data(path_cal_res / Path('density.cube'))
+  esps, atoms2 = read_cube_data(path_cal_res / Path('esp.cube'))
+  print(esps.min(),esps.max())
+  dens = np.clip(dens, 0.0001, 1)
+  
+  
+  # 获取网格坐标
+  nx, ny, nz = dens.shape
+  x = np.linspace(0, atoms0.cell[0, 0], nx, endpoint=False)
+  y = np.linspace(0, atoms0.cell[1, 1], ny, endpoint=False)
+  z = np.linspace(0, atoms0.cell[2, 2], nz, endpoint=False)
+  
+  # 创建三维网格
+  x_grid, y_grid, z_grid = np.meshgrid(x, y, z, indexing='ij')
+  
+  # 绘制等值面
+  mlab.figure('Density Isosurface with ESP', bgcolor=(1, 1, 1), size=(800, 600))
+  
+  # 选择等值面
+  contours = [0.001]
+  contour = mlab.contour3d(x_grid, y_grid, z_grid, dens, contours=contours, colormap='viridis')
+  
+  
+  
+  # 设置透明度
+  contour.actor.property.opacity = 0.0
+  
+  # 提取等值面点
+  points = contour.actor.mapper.input.points.to_array()
+  
+  # 使用 ESP 数据重新映射颜色
+  # First, we need to interpolate ESP values at the points of the isosurface
+  from scipy.interpolate import RegularGridInterpolator
+  
+  # Create an interpolator for the ESP data
+  esp_interpolator = RegularGridInterpolator((x, y, z), esps)
+  
+  # Interpolate ESP at each point of the isosurface
+  esp_values = esp_interpolator(points)
+  
+  print(min(esp_values),max(esp_values))
+  
+  
+  # Create Delaunay triangulation for surface
+  tri = Delaunay(points)
+  
+  # Create a surface from the triangulation
+  surface = mlab.pipeline.surface(mlab.pipeline.delaunay3d(mlab.pipeline.scalar_scatter(points[:,0], points[:,1], points[:,2], esp_values)))
+  
+  # Adjust surface properties
+  surface.actor.mapper.scalar_range = (np.min(esp_values), np.max(esp_values))
+  surface.module_manager.scalar_lut_manager.lut_mode = 'RdBu'
+  surface.actor.property.opacity = 0.6
+  
+  # 显示色带
+  surface_ = mlab.colorbar(surface, title='ESP', orientation='vertical', nb_labels=11)
+  
+  # Adjust colorbar text
+  surface.module_manager.scalar_lut_manager.label_text_property.color = (0, 0, 0)
+  surface_.label_text_property.font_size = 1
+  surface.module_manager.scalar_lut_manager.title_text_property.color = (0, 0, 0)
+  surface_.title_text_property.font_size = 2
+  
+  
+  
+  # 原子数据
+  atoms_sysmbol = atoms0.get_chemical_symbols()
+  
+  
+  # Create spheres
+  for i, atom in enumerate(atoms0.get_positions()):
+      x, y, z = atom
+      element_info = get_element_info(atoms_sysmbol[i])
+      # 默认使用element_info.radius/2的半径渲染原子，防止等值面看不清晰
+      mlab.points3d(x, y, z, scale_factor=element_info.radius/2, color=element_info.color, resolution=32, opacity=0.9)
+  mlab.show()
+  ```
+  
 
 
 

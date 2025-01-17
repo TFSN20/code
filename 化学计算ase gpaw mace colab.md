@@ -721,7 +721,10 @@
   surface = mlab.pipeline.surface(mlab.pipeline.delaunay3d(mlab.pipeline.scalar_scatter(points[:,0], points[:,1], points[:,2], esp_values)))
   
   # Adjust surface properties
-  surface.actor.mapper.scalar_range = (np.min(esp_values), np.max(esp_values))
+  if abs(max(esp_values) - min(esp_values)) >1:
+    surface.module_manager.scalar_lut_manager.data_range = (min(esp_values), max(esp_values))
+  elif abs(max(esp_values) - min(esp_values)) <=1:
+    surface.module_manager.scalar_lut_manager.data_range = (esps.min(),esps.max())
   surface.module_manager.scalar_lut_manager.lut_mode = 'RdBu'
   surface.actor.property.opacity = 0.6
   

@@ -468,7 +468,7 @@
   pip install https://github.com/enthought/mayavi/zipball/main
   ```
 ## 电子密度,bader电荷，静电势
-- density.cube代码（h=0.2和gridrefinement=2对应0.2/2=0.1，对应静电势）
+### density.cube代码（h=0.2和gridrefinement=2对应0.2/2=0.1，对应静电势）
   ```
   import os
   from ase.build import molecule
@@ -512,7 +512,7 @@
   rho = system.calc.get_all_electron_density(gridrefinement=2)
   write(new_dir_path / Path('density.cube'), system, data=rho * Bohr**3)
   ```
-- esp.cube代码
+### esp.cube代码
   ```
   from ase.build import molecule
   from ase.io import write
@@ -549,11 +549,11 @@
   v = system.calc.get_electrostatic_potential()
   write(new_dir_path / Path('esp.cube'), system, data=v)
   ```
-- 分析密度立方体文件
+### 分析密度立方体文件
   ```
   ~/bader -p all_atom -p atom_index density.cube
   ```
-- 三维多等值面电子密度图像
+### 三维多等值面电子密度图像
   ```
   import numpy as np
   from ase.io.cube import read_cube_data
@@ -640,7 +640,7 @@
   # 显示等值面
   mlab.show()
   ```
-- 静电势3d图像代码：
+### 静电势3d图像代码：
   ```
   import numpy as np
   from ase.io.cube import read_cube_data

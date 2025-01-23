@@ -438,6 +438,8 @@
   - 逐步增加 cutoff energy：设置一系列逐渐增大的 𝐸cutoff。
   - 计算总能量：对每个 𝐸cutoff值计算体系的总能量。
   - 分析收敛性：观察能量变化，当能量变化小于设定阈值（如 <1meV/atom）时，认为收敛。
+### 正交坐标系与石墨，石墨烯
+- 正交转石墨烯坐标系：参考https://wiki.fysik.dtu.dk/ase/_modules/ase/visualize/mlab.html，https://github.com/enthought/mayavi/issues/1268
 # 机器学习原子间势
 - 大多数机器学习原子间MLIP架构，没有明确地包含原子电荷和磁性。
 - 对于广泛的材料科学问题，准确描述这些长程相互作用，是必要的，包括反应系统和界面、电子驱动相变、磁性材料等。

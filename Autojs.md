@@ -7,3 +7,65 @@
 - jsBridge.callHandler里的网络请求必须threads.start。
 - 悬浮窗按钮点击后触发的函数若有堵塞，则必须先 yield myAwait(sleep_(10));
 - 关于UI的操作必须在ui.run里进行，且上层函数必须是ui.run
+- 响应体"Accept-Encoding", "deflate"。string乱码
+  ```
+    importClass(java.io.ByteArrayOutputStream);
+  importClass(java.io.InputStreamReader);
+  importClass(java.io.BufferedReader);
+  importClass(java.lang.StringBuffer);
+  importClass(java.net.HttpURLConnection);
+  importClass(java.net.URL);
+  importClass(java.util.zip.Inflater);
+  importClass(java.util.zip.InflaterInputStream);
+  
+  function decompressDeflate(inputStream) {
+    let inflater = new Inflater(true); // true 表示跳过 zlib 头
+    let buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, 1024);
+    let byteArrayOutputStream = new ByteArrayOutputStream();
+
+    let len;
+    while ((len = inputStream.read(buffer)) !== -1) {
+        byteArrayOutputStream.write(buffer, 0, len);
+    }
+
+    let decompressedBytes = byteArrayOutputStream.toByteArray();
+    byteArrayOutputStream.close();
+
+    inflater.setInput(decompressedBytes);
+    let outputStream = new ByteArrayOutputStream();
+    let outBuffer = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, 1024);
+
+    try {
+        while (!inflater.finished()) {
+            let count = inflater.inflate(outBuffer);
+            outputStream.write(outBuffer, 0, count);
+        }
+    } finally {
+        inflater.end();
+    }
+
+    return outputStream.toString("UTF-8");
+  }
+  
+  function fetchBilibiliDM(urlPath) {
+    let conn = (new URL(urlPath)).openConnection();
+    conn.setConnectTimeout(5000);
+    conn.setRequestMethod("GET");
+    conn.setRequestProperty("Accept-Encoding", "deflate");
+
+    conn.connect();
+
+    if (conn.getResponseCode() === 200) {
+        let inputStream = conn.getInputStream();
+        let responseString = decompressDeflate(inputStream);
+        return responseString;
+    } else {
+        console.error("HTTP 请求失败，状态码: " + conn.getResponseCode());
+        return null;
+    }
+  }
+  
+  // 示例调用
+  let cid = "28059239264"; // 替换为实际的 cid
+  let response = fetchBilibiliDM(`https://api.bilibili.com/x/v1/dm/list.so?oid=${cid}`);
+  ```

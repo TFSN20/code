@@ -412,6 +412,7 @@
   - 不能保存为jpg
   - 格式为名称.png@1:23
 ## 常见问题
+- gpaw的get_potential_energy在第一次计算时输出的是Free energy，以后再次访问traj获取的是Extrapolated能量。有时这两者不相等。
 ### 粒子之间的距离
 ### 采用哪种优化方法
 - 经典EMT potential很快，但对于分子不准确。

@@ -496,20 +496,22 @@
   traj = Trajectory(path_cal_res / Path(traj_name), 'r') 
   system = traj[traj_index]
   
-  # calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=path_cal_res / Path('system1_output1.txt'))
-  calc = GPAW(mode='fd', xc='PBE', h=0.2, charge=+2.0, txt=path_cal_res / Path('system_output_fd.txt'))
+  calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=path_cal_res / Path('system1_output1.txt'))
+  # calc = GPAW(mode='fd', xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=path_cal_res / Path('system_output_fd.txt'))
+  # 'fd' 模式下 设置pcb false 对于原本是orthogonal的系统会有问题，而pw模式下无法对电荷求解，各有劣势
+  # 由于一般是pw模式，所以需要注释掉电荷相关
   system.calc = calc
   print(system)
   print(system.get_potential_energy())
-  calc.write(new_dir_path / Path('system1_fd.paw'), mode='all')
+  calc.write(new_dir_path / Path('system.paw'), mode='all')
   
   
   # write Hirshfeld charges out
-  hf = HirshfeldPartitioning(system.calc)
-  for atom, charge in zip(system, hf.get_charges()):
-      atom.charge = charge
+  # hf = HirshfeldPartitioning(system.calc)
+  # for atom, charge in zip(system, hf.get_charges()):
+  #     atom.charge = charge
   # system.write('Hirshfeld.traj') # XXX Trajectory writer needs a fix
-  system.copy().write(new_dir_path / Path('Hirshfeld_fd.traj'))
+  system.copy().write(new_dir_path / Path('system.traj'))
   
   # create electron density cube file ready for bader
   rho = system.calc.get_all_electron_density(gridrefinement=2)

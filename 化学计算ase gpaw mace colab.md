@@ -515,7 +515,7 @@
   
   # create electron density cube file ready for bader
   rho = system.calc.get_all_electron_density(gridrefinement=2)
-  write(new_dir_path / Path('density.cube'), system, data=rho * Bohr**3)
+  write(new_dir_path / Path('den.cube'), system, data=rho * Bohr**3)
   ```
 ### esp.cube代码
   ```

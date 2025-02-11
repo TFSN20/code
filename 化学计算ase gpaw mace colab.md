@@ -497,7 +497,7 @@
   system = traj[traj_index]
   
   calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=path_cal_res / Path('system1.txt'))
-  # calc = GPAW(mode='fd', xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=path_cal_res / Path('system.txt'))
+  # calc = GPAW(mode='fd', xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=path_cal_res / Path('system_output.txt'))
   # 'fd' 模式下 设置pcb false 对于原本是orthogonal的系统会有问题，而pw模式下无法对电荷求解，各有劣势
   # 由于一般是pw模式，所以需要注释掉电荷相关
   system.calc = calc

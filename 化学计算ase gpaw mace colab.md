@@ -485,12 +485,16 @@
   # 选择轨迹名称和index
   traj_name = 'g_C-F_zn2+_constraint_optiming_keeping2.traj'
   traj_index = -1
+  # 有时一个目录下可能有许多traj文件都需要电子密度 需要设置文件夹flag
+  flag='zn'
+  # 设置计算器的总电荷，除此之外还需要设置计算器的kpts
+  charge=+2.0
   
   
   path_big_file = '/mnt/d/cal'
   path_cal_res = os.path.dirname(os.path.abspath(__file__))
   # 有时一个目录下可能有许多traj文件都需要电子密度 则os.path.basename(path_cal_res)+flag
-  new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+'zn')
+  new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+flag)
   os.makedirs(new_dir_path, exist_ok=True)
   
   traj = Trajectory(path_cal_res / Path(traj_name), 'r') 
@@ -498,7 +502,7 @@
   
   # system.pbc = False
   # calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=path_cal_res / Path('system1_output1.txt'))
-  calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=new_dir_path / Path('system_output.txt'))
+  calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=charge, kpts=(2,2,1), txt=new_dir_path / Path('system_output.txt'))
   # 'fd' 模式下 设置pcb false 对于原本是orthogonal的系统会有问题，而pw模式下无法对电荷求解，各有劣势
   # 由于一般是pw模式，所以需要注释掉电荷相关
   system.calc = calc
@@ -534,12 +538,16 @@
   # 选择轨迹名称和index
   traj_name = 'g_C-F_zn2+_constraint_optiming_keeping2.traj'
   traj_index = -1
+  # 有时一个目录下可能有许多traj文件都需要电子密度 需要设置文件夹flag
+  flag='zn'
+  # 设置计算器的总电荷，除此之外还需要设置计算器的kpts
+  charge=+2.0
   
   
   path_big_file = '/mnt/d/cal'
   path_cal_res = os.path.dirname(os.path.abspath(__file__))
   # 有时一个目录下可能有许多traj文件都需要电子密度 则os.path.basename(path_cal_res)+flag
-  new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+'zn')
+  new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+flag)
   os.makedirs(new_dir_path, exist_ok=True)
   
   traj = Trajectory(path_cal_res / Path(traj_name), 'r') 
@@ -547,7 +555,7 @@
   
   system.calc = GPAW(xc='PBE',
                    mode=PW(400),
-                   charge=+2.0,
+                   charge=charge,
                    h=0.2,
                    kpts=(2,2,1),
                    txt=new_dir_path / Path('pw.txt'))

@@ -483,34 +483,36 @@
   from pathlib import Path
   
   # 选择轨迹名称和index
-  traj_name = 'zn2+__optiming.traj'
+  traj_name = 'g_C-F_zn2+_constraint_optiming_keeping2.traj'
   traj_index = -1
   
   
   path_big_file = '/mnt/d/cal'
   path_cal_res = os.path.dirname(os.path.abspath(__file__))
   # 有时一个目录下可能有许多traj文件都需要电子密度 则os.path.basename(path_cal_res)+flag
-  new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+'zn2+')
+  new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+'zn')
   os.makedirs(new_dir_path, exist_ok=True)
   
   traj = Trajectory(path_cal_res / Path(traj_name), 'r') 
   system = traj[traj_index]
   
-  calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=path_cal_res / Path('system1.txt'))
-  # calc = GPAW(mode='fd', xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=path_cal_res / Path('system_output.txt'))
+  # system.pbc = False
+  # calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=path_cal_res / Path('system1_output1.txt'))
+  calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=new_dir_path / Path('system_output.txt'))
   # 'fd' 模式下 设置pcb false 对于原本是orthogonal的系统会有问题，而pw模式下无法对电荷求解，各有劣势
   # 由于一般是pw模式，所以需要注释掉电荷相关
   system.calc = calc
+  print(system.calc)
   print(system)
   print(system.get_potential_energy())
-  calc.write(new_dir_path / Path('system.paw'), mode='all')
+  # calc.write(new_dir_path / Path('system.paw'), mode='all')
   
   
   # write Hirshfeld charges out
   # hf = HirshfeldPartitioning(system.calc)
   # for atom, charge in zip(system, hf.get_charges()):
   #     atom.charge = charge
-  # system.write('Hirshfeld.traj') # XXX Trajectory writer needs a fix
+  # # system.write('Hirshfeld.traj') #  Trajectory writer needs a fix
   system.copy().write(new_dir_path / Path('system.traj'))
   
   # create electron density cube file ready for bader
@@ -530,14 +532,14 @@
   
   
   # 选择轨迹名称和index
-  traj_name = 'zn2+__optiming.traj'
+  traj_name = 'g_C-F_zn2+_constraint_optiming_keeping2.traj'
   traj_index = -1
   
   
   path_big_file = '/mnt/d/cal'
   path_cal_res = os.path.dirname(os.path.abspath(__file__))
   # 有时一个目录下可能有许多traj文件都需要电子密度 则os.path.basename(path_cal_res)+flag
-  new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+'zn2+')
+  new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+'zn')
   os.makedirs(new_dir_path, exist_ok=True)
   
   traj = Trajectory(path_cal_res / Path(traj_name), 'r') 
@@ -547,6 +549,7 @@
                    mode=PW(400),
                    charge=+2.0,
                    h=0.2,
+                   kpts=(2,2,1),
                    txt=new_dir_path / Path('pw.txt'))
   print(system)
   print(system.get_potential_energy())

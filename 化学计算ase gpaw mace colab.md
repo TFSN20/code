@@ -565,6 +565,145 @@
   v = system.calc.get_electrostatic_potential()
   write(new_dir_path / Path('esp.cube'), system, data=v)
   ```
+### esp-show代码
+  ```
+  import numpy as np
+  from ase.io.cube import read_cube_data
+  from pathlib import Path
+  import os
+  from mayavi import mlab
+  from ase.data import covalent_radii
+  from ase.data.colors import cpk_colors
+  
+  atoms_magnification = 1
+  
+  # Function to extract points and ESP values on a specific density isosurface
+  def extract_points_and_esps_on_isosurface(data, esps, iso_value):
+    """
+    Extract points and ESP values on a specific density isosurface.
+
+    Parameters:
+        data: 3D ndarray
+            The density data.
+        esps: 3D ndarray
+            The electrostatic potential data.
+        iso_value: float
+            The density isosurface value.
+
+    Returns:
+        points: ndarray
+            The coordinates of the points on the isosurface.
+        esp_values: ndarray
+            The ESP values at the points on the isosurface.
+    """
+    # Find points on the isosurface (allow for a small tolerance)
+    tolerance = 1e-4
+    tolerance = 10**(-3.5)
+    # print(10**(-4),10**(-3.6),10**(-3.5),10**(-3.4),10**(-3.3))
+    isosurface_indices = np.where((data >= iso_value - tolerance) & (data <= iso_value + tolerance))
+
+    # Extract coordinates of the points
+    points = np.column_stack(isosurface_indices)
+
+    # # Filter points based on z-coordinate
+    # valid_indices = points[:, 2] <= 200
+    # points = points[valid_indices]
+
+    # # Update isosurface_indices accordingly
+    # isosurface_indices = tuple(index[valid_indices] for index in isosurface_indices)
+
+    # Extract corresponding ESP values
+    esp_values = esps[isosurface_indices]
+
+    return points, esp_values
+  def plot_with_surface(atoms, data, points, esp_values, iso_value):
+    """
+    Plot atoms, unit-cell, iso-surfaces, and ESP surface using Mayavi.
+
+    Parameters:
+        atoms: Atoms object
+            Positions, atomic numbers, and unit-cell.
+        data: 3D ndarray of float
+            Data for iso-surfaces.
+        points: ndarray
+            Coordinates of the points on the isosurface.
+        esp_values: ndarray
+            ESP values at the points on the isosurface.
+        iso_value: float
+            The density isosurface value.
+    """
+    mlab.figure(1, bgcolor=(1, 1, 1))  # Make a white figure
+    # Plot the atoms as spheres:
+    for pos, Z in zip(atoms.positions, atoms.numbers):
+        mlab.points3d(*pos,
+                      scale_factor=covalent_radii[Z]*atoms_magnification,
+                      resolution=20,
+                      color=tuple(cpk_colors[Z]))
+    # Plot the density isosurface
+    cp_density = mlab.contour3d(data, contours=[iso_value], transparent=True,
+                                opacity=0.0, colormap='viridis')
+    A = atoms.cell
+    transformed_points = np.dot(points - 1, A / np.array(data.shape)[:, np.newaxis])
+
+    # Use transformed points in mlab.points3d
+    cp_surface = mlab.points3d(transformed_points[:, 0], transformed_points[:, 1], transformed_points[:, 2],
+                               esp_values,
+                               scale_mode='none', 
+                               scale_factor=0.3,
+                               colormap='RdBu', 
+                               mode="sphere",
+                               resolution=12,
+                               opacity=0.03)
+
+    # cp_surface.module_manager.scalar_lut_manager.data_range = [-15, -5]
+    print(esp_values.min(),esp_values.max())
+    colorbar = mlab.colorbar(cp_surface, title='esp', orientation='vertical', nb_labels=11)
+    # 设置刻度数字颜色为黑色
+    colorbar.scalar_bar.unconstrained_font_size = True  # 确保字体大小可调
+    colorbar.label_text_property.font_size = 14  # Increase font size
+    colorbar.label_text_property.color = (0, 0, 0)  # RGB格式，黑色为 (0, 0, 0)
+    colorbar.title_text_property.color = (0, 0, 0)  # Black color for the title
+    colorbar.title_text_property.font_size = 0  # Increase font size
+    # Combine cp_density and cp_surface for tvtk processing
+    cp = [cp_density]
+
+    # Do some tvtk magic in order to allow for non-orthogonal unit cells
+    A = atoms.cell
+    for c in cp:
+        polydata = c.actor.actors[0].mapper.input
+        pts = np.array(polydata.points) - 1
+        polydata.points = np.dot(pts, A / np.array(data.shape)[:, np.newaxis])
+
+    # Show the 3D plot
+    mlab.show()
+  
+  
+  def main():
+    # Define the path to the current script directory
+    path_cal_res = Path(os.path.dirname(os.path.abspath(__file__)))
+
+    # Read density and ESP data
+    dens, atoms = read_cube_data(path_cal_res / 'den.cube')
+    esps, _ = read_cube_data(path_cal_res / 'esp.cube')
+    esps = esps * -1
+    # Extract points and ESP values on the density isosurface (den = 0.001)
+    iso_value = 0.001
+    points, esp_values = extract_points_and_esps_on_isosurface(dens, esps, iso_value)
+
+    # Print the points and ESP values
+    print(f"Points on the density isosurface (den = {iso_value}):")
+    print(points)
+    print(f"ESP values on the density isosurface (den = {iso_value}):")
+    print(esp_values)
+    print(len(points))
+    print(len(esp_values))
+
+    # Plot with surface
+    plot_with_surface(atoms, dens, points, esp_values, iso_value)
+  
+  if __name__ == "__main__":
+      main()
+  ```
 ### 分析密度立方体文件
   ```
   ~/bader -p all_atom -p atom_index density.cube

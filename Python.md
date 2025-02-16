@@ -145,6 +145,14 @@ tensor_img[:, 0, 0] 是对这个Tensor进行索引操作，具体解释如下：
 
 Here are some other common special methods that you might find useful in various contexts:
 
+### 调试
+- 找到函数的定义文件
+  ```
+  import inspect
+  # 找到函数的定义文件
+  file_location = inspect.getfile(calc.get_homo_lumo)
+  print(f"Function is defined in: {file_location}")
+  ```
 ### Object Creation and Destruction
 - `__new__(cls, [...])`: Called to create a new instance of the class. It's the first step in the instance creation process and is rarely overridden.
 - `__init__(self, [...])`: Called after the instance is created. Used for initializing the instance with the given arguments.

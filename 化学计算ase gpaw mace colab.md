@@ -914,7 +914,7 @@
   ```
 
 # 常用代码片段
-## 使用MACE快速优化结构
+## 使用机器学习势如MACE快速优化结构
 ```
 import os
 from pathlib import Path

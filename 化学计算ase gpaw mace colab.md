@@ -912,6 +912,100 @@
       mlab.points3d(x, y, z, scale_factor=element_info.radius/2, color=element_info.color, resolution=32, opacity=0.9)
   mlab.show()
   ```
+
+# 常用代码片段
+## 使用MACE快速优化结构
+```
+import os
+from pathlib import Path
+import random
+from ase.build import molecule
+import numpy as np
+
+from ase.visualize import view
+from ase.build import graphene
+from ase import Atoms
+from ase.optimize import BFGS
+from ase.io import write
+from ase.constraints import Hookean, FixAtoms
+
+X_Y_bond_length=1.51 # Å 1.3 1.5
+fmax=0.05
+file_name_prefix='g'
+other_info=fr'oh'
+
+mace_model_path_windows = r"d:\Downloads\mace-mpa-0-medium.model"
+mace_model_path_linux = r"mnt/d/Downloads/2023-12-03-mace-128-L1_epoch-199.model"
+
+path_cal_res = os.path.dirname(os.path.abspath(__file__))
+# path_cal_res=r'd:\UbuntuFiles\cal'
+environment = None
+
+
+if os.name == "nt":  # 检查是否是 Windows
+    environment = 'Windows'
+elif os.name == "posix":  # 检查是否是类 Unix 系统
+    system_name = platform.system()  # 获取系统名称
+    if system_name == "Linux":  
+        # 检查是否是 WSL 环境
+        if "microsoft" in platform.uname().release.lower():
+            environment = 'Ubuntu (WSL)'
+            # path_cal_res = r'/mnt/d/UbuntuFiles/cal'
+            path_cal_res = ''
+        else:
+            environment = 'Linux'
+    elif system_name == "Darwin":
+        environment = 'macOS'
+    else:
+        environment = "Unknown POSIX System"
+else:
+    environment = "Unknown OS"
+
+
+def get_system():
+    system = Atoms()
+    pass
+    return system
+
+
+def main(mode):
+    """ 
+    mode: 'mace' or 'chgnet'
+    """
+    system = get_system()
+
+    print(system)
+    view(system)
+
+    # 保存未优化的建模文件
+    write(path_cal_res /
+        Path(rf'{file_name_prefix}_{other_info}_no_optim.traj'), system)
+    calc = None
+    if mode == 'mace':
+        from mace.calculators import mace_mp
+        if environment == 'Windows':
+            # calc = mace_mp(model=r"d:\Downloads\2023-12-03-mace-128-L1_epoch-199.model")
+            calc = mace_mp(model=mace_model_path_windows)
+        elif environment == 'Ubuntu (WSL)':
+            calc = mace_mp(model=mace_model_path_linux)
+    elif mode == 'chgnet':
+        from chgnet.model.model import CHGNet
+        from chgnet.model.dynamics import CHGNetCalculator
+        chgnet = CHGNet.load(model_name="0.3.0")  # 您可以更改 model_name 来选择不同的模型
+        calc = CHGNetCalculator(chgnet)
+
+    system.calc = calc
+    # 优化几何结构
+    dyn = BFGS(system, trajectory=str(path_cal_res /
+               Path(fr'{file_name_prefix}_{other_info}_optiming_{mode}.traj')))
+    dyn.run(fmax=fmax)
+    # 获取总能量
+    e_system = system.get_potential_energy()
+    print(f"Binding energy of {file_name_prefix}: {e_system} eV")
+
+main('mace')
+# main('chgnet')
+```
   
 
 

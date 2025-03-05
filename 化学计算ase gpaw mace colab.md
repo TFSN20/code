@@ -964,7 +964,6 @@ else:
 
 def get_system():
     system = Atoms()
-    pass
     return system
 
 
@@ -1006,7 +1005,194 @@ def main(mode):
 main('mace')
 # main('chgnet')
 ```
-  
+## 使用GPAW进行二次优化
+```
+
+import os
+from pathlib import Path
+from ase.build import graphene
+from ase import Atoms
+from ase.optimize import BFGS
+from gpaw import GPAW, PW
+from ase.visualize import view
+from ase.constraints import Hookean
+from ase.constraints import Hookean, FixAtoms
+# from ase.build.surface import add_adsorbate
+# from ase.build import molecule
+
+X_Y_bond_length = 1.5  # Å 1.3 1.5
+cutoff_energy = 400   # 截止能量 eV
+fmax = 0.01  # 最大受力的阈值 eV/Å
+file_name_prefix = 'g'
+other_info = fr'oh'
+
+path_cal_res = os.path.dirname(os.path.abspath(__file__))
+
+
+def main(mode='mace'):
+    keeping('mace')
+
+
+
+def keeping(mode):
+    from ase.io import Trajectory
+    # 设置 GPAW 计算器
+    _ = path_cal_res / \
+        Path(rf'{file_name_prefix}_{other_info}_output_keeping.txt')
+    calc = GPAW(mode=PW(cutoff_energy), xc='PBE', charge =0.0 , kpts=(2,2,1), txt=str(_))
+    # 加载轨迹文件并获取最后一步的结构
+    traj = Trajectory(str(
+        path_cal_res / Path(rf'{file_name_prefix}_{other_info}_optiming_{mode}.traj')), 'r')
+    system = traj[-1]  # 获取轨迹文件中的最后一步结构
+
+    # 对system的处理
+
+    # 重新设置计算器
+    system.calc = calc
+
+    # 继续优化并保存到新的轨迹文件
+    dyn = BFGS(system, trajectory=str(path_cal_res /
+               Path(rf'{file_name_prefix}_{other_info}_optiming_keeping.traj')))
+    dyn.run(fmax=fmax)
+
+    # 获取总能量
+    e_system = system.get_potential_energy()
+
+    print(f"Binding energy of {file_name_prefix}: {e_system} eV")
+
+
+main('mace')
+```
+## 电子密度
+```
+import os
+from ase.build import molecule
+from ase.io import write
+from ase.units import Bohr
+from gpaw import GPAW, PW
+from gpaw.analyse.hirshfeld import HirshfeldPartitioning
+from ase.io import Trajectory
+from pathlib import Path
+
+# 选择轨迹名称和index
+traj_name = 'g_C-COOH_constraint_optiming_keeping.traj'
+traj_index = 13
+
+
+path_big_file = '/mnt/d/cal' # 由于cube文件较大，可以设置额外的目录
+path_cal_res = os.path.dirname(os.path.abspath(__file__))
+# 有时一个目录下可能有许多traj文件都需要电子密度 则os.path.basename(path_cal_res)+flag
+new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+'onlyg-OH')
+os.makedirs(new_dir_path, exist_ok=True)
+
+traj = Trajectory(path_cal_res / Path(traj_name), 'r') 
+system = traj[traj_index]
+
+calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=0.0, kpts=(2,2,1), txt=new_dir_path / Path('system_output.txt'))
+# 'fd' 模式下 设置pcb false 对于原本是orthogonal的系统会有问题，而pw模式下无法对电荷求解，各有劣势
+# 由于一般是pw模式，所以需要注释掉电荷相关
+system.calc = calc
+print(system)
+print(system.get_potential_energy())
+# calc.write(new_dir_path / Path('system1_fd.paw'), mode='all')
+
+
+# write Hirshfeld charges out
+# hf = HirshfeldPartitioning(system.calc)
+# for atom, charge in zip(system, hf.get_charges()):
+#     atom.charge = charge
+# # system.write('Hirshfeld.traj') #  Trajectory writer needs a fix
+system.copy().write(new_dir_path / Path('system.traj'))
+
+# create electron density cube file ready for bader
+rho = system.calc.get_all_electron_density(gridrefinement=2)
+write(new_dir_path / Path('den.cube'), system, data=rho * Bohr**3)
+```
+## 静电势
+```
+from ase.build import molecule
+from ase.io import write
+from ase.units import Bohr
+from gpaw import GPAW,PW
+from ase.io import Trajectory
+
+from pathlib import Path
+import os
+
+
+# 选择轨迹名称和index
+traj_name = 'g_C-COOH_constraint_optiming_keeping.traj'
+traj_index = 13
+
+
+path_big_file = '/mnt/d/cal'
+path_cal_res = os.path.dirname(os.path.abspath(__file__))
+# 有时一个目录下可能有许多traj文件都需要电子密度 则os.path.basename(path_cal_res)+flag
+new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+'onlyg-OH')
+os.makedirs(new_dir_path, exist_ok=True)
+
+traj = Trajectory(path_cal_res / Path(traj_name), 'r') 
+system = traj[traj_index]
+
+system.calc = GPAW(xc='PBE',
+                 mode=PW(400),
+                 charge=0.0,
+                 h=0.2,
+                 kpts=(2,2,1),
+                 txt=new_dir_path / Path('pw.txt'))
+print(system)
+print(system.get_potential_energy())
+system.calc.write(new_dir_path / Path('pw.gpw'))
+v = system.calc.get_electrostatic_potential()
+write(new_dir_path / Path('esp.cube'), system, data=v)
+```
+## 电子密度差（电荷差）
+### 吸附/反应后的电子密度
+```
+import os
+from ase.build import molecule
+from ase.io import write
+from ase.units import Bohr
+from gpaw import GPAW, PW
+
+from ase.io import Trajectory
+from pathlib import Path
+from ase.visualize import view
+
+# 选择轨迹名称和index
+traj_name = 'g_C-COOH_constraint_zn2+_constraint_38-39-4_36-39-5_optiming_keeping.traj'
+traj_index = 84
+# 差分电荷 + flag 用于区分den.cube文件
+flag = 'whole'
+
+path_big_file = '/mnt/d/cal'
+path_cal_res = os.path.dirname(os.path.abspath(__file__))
+new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+'-ccd')
+os.makedirs(new_dir_path, exist_ok=True)
+
+traj = Trajectory(path_cal_res / Path(traj_name), 'r') 
+system = traj[traj_index]
+# del system[[atom.index for atom in system if atom.symbol=='H' or atom.symbol=='O']] #删除所有指定原子
+# view(system)
+
+# calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=path_cal_res / Path('system1_output1.txt'))
+calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=new_dir_path / Path(f'system-{flag}.txt'))
+
+system.calc = calc
+print(system.calc)
+print(system)
+print(system.get_potential_energy())
+# calc.write(new_dir_path / Path('system1_fd.paw'), mode='all')
+
+system.copy().write(new_dir_path / Path('system.traj'))
+
+# create electron density cube file ready for bader
+rho = system.calc.get_all_electron_density(gridrefinement=2)
+write(new_dir_path / Path(f'den-{flag}.cube'), system, data=rho * Bohr**3)
+```
+### 载体/平面物
+```
+
 
 
 

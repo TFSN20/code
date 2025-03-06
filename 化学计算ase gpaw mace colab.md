@@ -1064,6 +1064,7 @@ def keeping(mode):
 main('mace')
 ```
 ## 电子密度
+### 获取电子密度
 ```
 import os
 from ase.build import molecule
@@ -1108,7 +1109,118 @@ system.copy().write(new_dir_path / Path('system.traj'))
 rho = system.calc.get_all_electron_density(gridrefinement=2)
 write(new_dir_path / Path('den.cube'), system, data=rho * Bohr**3)
 ```
+### 显示3D电子密度
+```
+# fmt: off
+
+import optparse
+
+import numpy as np
+
+from ase.calculators.calculator import get_calculator_class
+from ase.data import covalent_radii
+from ase.data.colors import jmol_colors
+from ase.io.cube import read_cube_data
+
+
+cpk_colors = jmol_colors
+
+atoms_magnification = 1.8
+
+def plot(atoms, data, contours):
+    """Plot atoms, unit-cell and iso-surfaces using Mayavi.
+
+    Parameters:
+
+    atoms: Atoms object
+        Positions, atomiz numbers and unit-cell.
+    data: 3-d ndarray of float
+        Data for iso-surfaces.
+    countours: list of float
+        Contour values.
+    """
+
+    # Delay slow imports:
+    import os
+
+    from mayavi import mlab
+
+    # mayavi GUI bug fix for remote access via ssh (X11 forwarding)
+    if "SSH_CONNECTION" in os.environ:
+        f = mlab.gcf()
+        f.scene._lift()
+
+    mlab.figure(1, bgcolor=(1, 1, 1))  # make a white figure
+
+    # Plot the atoms as spheres:
+    for pos, Z in zip(atoms.positions, atoms.numbers):
+        mlab.points3d(*pos,
+                      scale_factor=covalent_radii[Z]*atoms_magnification,
+                      resolution=20,
+                      color=tuple(cpk_colors[Z]))
+
+    # Draw the unit cell:
+    A = atoms.cell
+    # for i1, a in enumerate(A):
+    #     i2 = (i1 + 1) % 3
+    #     i3 = (i1 + 2) % 3
+    #     for b in [np.zeros(3), A[i2]]:
+    #         for c in [np.zeros(3), A[i3]]:
+    #             p1 = b + c
+    #             p2 = p1 + a
+    #             mlab.plot3d([p1[0], p2[0]],
+    #                         [p1[1], p2[1]],
+    #                         [p1[2], p2[2]],
+    #                         tube_radius=0.1)
+
+    cp = mlab.contour3d(data, contours=contours, transparent=True,
+                        opacity=0.1, colormap='viridis')
+    cp.module_manager.scalar_lut_manager.data_range = [0, 1]
+
+    # Do some tvtk magic in order to allow for non-orthogonal unit cells:
+    polydata = cp.actor.actors[0].mapper.input
+    pts = np.array(polydata.points) - 1
+    # Transform the points to the unit cell:
+    polydata.points = np.dot(pts, A / np.array(data.shape)[:, np.newaxis])
+    colorbar = mlab.colorbar(cp, title='Density', orientation='vertical', nb_labels=11)
+    # 设置刻度数字颜色为黑色
+    colorbar.scalar_bar.unconstrained_font_size = True  # 确保字体大小可调
+    colorbar.label_text_property.font_size = 10  # Increase font size
+    colorbar.label_text_property.color = (0, 0, 0)  # RGB格式，黑色为 (0, 0, 0)
+    colorbar.title_text_property.color = (0, 0, 0)  # Black color for the title
+    colorbar.title_text_property.font_size = 14  # Increase font size
+
+    # 添加坐标轴
+    axes = mlab.axes(cp, color=(0, 0, 0), xlabel='X', ylabel='Y', zlabel='Z')
+
+    # 自定义刻度
+    axes.label_text_property.font_size = 12
+    axes.label_text_property.color = (0, 0, 0)  # Black labels
+    axes.title_text_property.color = (0, 0, 0)  # Black axis titles
+    axes.title_text_property.font_size = 14
+    # Apparently we need this to redraw the figure, maybe it can be done in
+    # another way?
+    mlab.view(azimuth=155, elevation=70, distance='auto')
+    # Show the 3d plot:
+    mlab.show()
+
+
+from pathlib import Path
+import os
+
+# 读取数据
+path_cal_res = os.path.dirname(os.path.abspath(__file__))
+dens, atoms = read_cube_data(path_cal_res / Path('den.cube'))
+
+# 限制 dens 到 [0.001, 1.2]
+dens = np.clip(dens, 0.0001, 1.0)
+
+contours = [0.001]
+# contours = list(np.linspace(0.1,1,10))
+plot(atoms,dens,contours)
+```
 ## 静电势
+### 获取静电势
 ```
 from ase.build import molecule
 from ase.io import write
@@ -1145,6 +1257,146 @@ print(system.get_potential_energy())
 system.calc.write(new_dir_path / Path('pw.gpw'))
 v = system.calc.get_electrostatic_potential()
 write(new_dir_path / Path('esp.cube'), system, data=v)
+```
+### 显示某个电子密度等值面上的静电势
+```
+import numpy as np
+from ase.io.cube import read_cube_data
+from pathlib import Path
+import os
+from mayavi import mlab
+from ase.data import covalent_radii
+from ase.data.colors import jmol_colors
+cpk_colors = jmol_colors
+atoms_magnification = 1.8
+
+# Function to extract points and ESP values on a specific density isosurface
+def extract_points_and_esps_on_isosurface(data, esps, iso_value):
+    """
+    Extract points and ESP values on a specific density isosurface.
+
+    Parameters:
+        data: 3D ndarray
+            The density data.
+        esps: 3D ndarray
+            The electrostatic potential data.
+        iso_value: float
+            The density isosurface value.
+
+    Returns:
+        points: ndarray
+            The coordinates of the points on the isosurface.
+        esp_values: ndarray
+            The ESP values at the points on the isosurface.
+    """
+    # Find points on the isosurface (allow for a small tolerance)
+    tolerance = 1e-4
+    tolerance = 10**(-3.5)
+    # print(10**(-4),10**(-3.6),10**(-3.5),10**(-3.4),10**(-3.3))
+    isosurface_indices = np.where((data >= iso_value - tolerance) & (data <= iso_value + tolerance))
+
+    # Extract coordinates of the points
+    points = np.column_stack(isosurface_indices)
+
+    # # Filter points based on z-coordinate
+    # valid_indices = points[:, 2] <= 200
+    # points = points[valid_indices]
+
+    # # Update isosurface_indices accordingly
+    # isosurface_indices = tuple(index[valid_indices] for index in isosurface_indices)
+
+    # Extract corresponding ESP values
+    esp_values = esps[isosurface_indices]
+
+    return points, esp_values
+def plot_with_surface(atoms, data, points, esp_values, iso_value):
+    """
+    Plot atoms, unit-cell, iso-surfaces, and ESP surface using Mayavi.
+
+    Parameters:
+        atoms: Atoms object
+            Positions, atomic numbers, and unit-cell.
+        data: 3D ndarray of float
+            Data for iso-surfaces.
+        points: ndarray
+            Coordinates of the points on the isosurface.
+        esp_values: ndarray
+            ESP values at the points on the isosurface.
+        iso_value: float
+            The density isosurface value.
+    """
+    mlab.figure(1, bgcolor=(1, 1, 1))  # Make a white figure
+    # Plot the atoms as spheres:
+    for pos, Z in zip(atoms.positions, atoms.numbers):
+        mlab.points3d(*pos,
+                      scale_factor=covalent_radii[Z]*atoms_magnification,
+                      resolution=20,
+                      color=tuple(cpk_colors[Z]))
+    # Plot the density isosurface
+    cp_density = mlab.contour3d(data, contours=[iso_value], transparent=True,
+                                opacity=0.0, colormap='viridis')
+    A = atoms.cell
+    transformed_points = np.dot(points - 1, A / np.array(data.shape)[:, np.newaxis])
+
+    # Use transformed points in mlab.points3d
+    cp_surface = mlab.points3d(transformed_points[:, 0], transformed_points[:, 1], transformed_points[:, 2],
+                               esp_values,
+                               scale_mode='none', 
+                               scale_factor=0.3,
+                               colormap='RdBu', 
+                               mode="sphere",
+                               resolution=12,
+                               opacity=0.03)
+
+    cp_surface.module_manager.scalar_lut_manager.data_range = [esp_values.min(), esp_values.max()]
+    print(esp_values.min(),esp_values.max())
+    colorbar = mlab.colorbar(cp_surface, title='esp', orientation='vertical', nb_labels=2)
+    # 设置刻度数字颜色为黑色
+    colorbar.scalar_bar.unconstrained_font_size = True  # 确保字体大小可调
+    colorbar.label_text_property.font_size = 24  # Increase font size
+    colorbar.label_text_property.color = (0, 0, 0)  # RGB格式，黑色为 (0, 0, 0)
+    colorbar.title_text_property.color = (0, 0, 0)  # Black color for the title
+    colorbar.title_text_property.font_size = 0  # Increase font size
+
+    # Combine cp_density and cp_surface for tvtk processing
+    cp = [cp_density]
+
+    # Do some tvtk magic in order to allow for non-orthogonal unit cells
+    A = atoms.cell
+    for c in cp:
+        polydata = c.actor.actors[0].mapper.input
+        pts = np.array(polydata.points) - 1
+        polydata.points = np.dot(pts, A / np.array(data.shape)[:, np.newaxis])
+
+    # Show the 3D plot
+    mlab.show()
+
+
+def main():
+    # Define the path to the current script directory
+    path_cal_res = Path(os.path.dirname(os.path.abspath(__file__)))
+
+    # Read density and ESP data
+    dens, atoms = read_cube_data(path_cal_res / 'den.cube')
+    esps, _ = read_cube_data(path_cal_res / 'esp.cube')
+    esps = esps * -1
+    # Extract points and ESP values on the density isosurface (den = 0.001)
+    iso_value = 0.001
+    points, esp_values = extract_points_and_esps_on_isosurface(dens, esps, iso_value)
+
+    # Print the points and ESP values
+    print(f"Points on the density isosurface (den = {iso_value}):")
+    print(points)
+    print(f"ESP values on the density isosurface (den = {iso_value}):")
+    print(esp_values)
+    print(len(points))
+    print(len(esp_values))
+
+    # Plot with surface
+    plot_with_surface(atoms, dens, points, esp_values, iso_value)
+
+if __name__ == "__main__":
+    main()
 ```
 ## 电子密度差（电荷差）
 ### 吸附/反应后的电子密度
@@ -1287,6 +1539,324 @@ system.copy().write(new_dir_path / Path('system.traj'))
 # create electron density cube file ready for bader
 rho = system.calc.get_all_electron_density(gridrefinement=2)
 write(new_dir_path / Path(f'den-{flag}.cube'), system, data=rho * Bohr**3)
+```
+### 显示3D电子密度差和电荷位移曲线
+```
+# fmt: off
+
+import optparse
+
+import numpy as np
+
+from ase.calculators.calculator import get_calculator_class
+from ase.data import covalent_radii
+from ase.data.colors import jmol_colors
+from ase.io.cube import read_cube_data
+
+cpk_colors = jmol_colors
+atoms_magnification = 1
+
+save_path = r'C:\Users\Administrator\Desktop' 
+middle = 200
+axis = 'z'
+是否为石墨烯体系=True
+# need_plot_3d=True
+need_plot_3d=False
+
+def plot(atoms, data, contours,axis=None):
+    """Plot atoms, unit-cell and iso-surfaces using Mayavi.
+
+    Parameters:
+
+    atoms: Atoms object
+        Positions, atomiz numbers and unit-cell.
+    data: 3-d ndarray of float
+        Data for iso-surfaces.
+    countours: list of float
+        Contour values.
+    """
+
+    # Delay slow imports:
+    import os
+
+    from mayavi import mlab
+
+    # mayavi GUI bug fix for remote access via ssh (X11 forwarding)
+    if "SSH_CONNECTION" in os.environ:
+        f = mlab.gcf()
+        f.scene._lift()
+
+    mlab.figure(1, bgcolor=(1, 1, 1))  # make a white figure
+
+    # Plot the atoms as spheres:
+    for pos, Z in zip(atoms.positions, atoms.numbers):
+        mlab.points3d(*pos,
+                      scale_factor=covalent_radii[Z]*atoms_magnification,
+                      resolution=20,
+                      color=tuple(cpk_colors[Z]))
+
+    # Draw the unit cell:
+    A = atoms.cell
+    for i1, a in enumerate(A):
+        i2 = (i1 + 1) % 3
+        i3 = (i1 + 2) % 3
+        for b in [np.zeros(3), A[i2]]:
+            for c in [np.zeros(3), A[i3]]:
+                p1 = b + c
+                p2 = p1 + a
+                mlab.plot3d([p1[0], p2[0]],
+                            [p1[1], p2[1]],
+                            [p1[2], p2[2]],
+                            tube_radius=0.1,
+                            opacity=0.4)
+    cp = mlab.contour3d(data, contours=contours, transparent=True,
+                        opacity=0.4, colormap='coolwarm')
+
+    # Do some tvtk magic in order to allow for non-orthogonal unit cells:
+    polydata = cp.actor.actors[0].mapper.input
+    pts = np.array(polydata.points) - 1
+    # Transform the points to the unit cell:
+    polydata.points = np.dot(pts, A / np.array(data.shape)[:, np.newaxis])
+    cp.module_manager.scalar_lut_manager.data_range = [data.min(), data.max()]
+    # colorbar = mlab.colorbar(cp, title='Density', orientation='vertical', nb_labels=21)
+    colorbar = mlab.colorbar(cp, title='Density', orientation='vertical', nb_labels=2)
+    # 设置刻度数字颜色为黑色
+    colorbar.scalar_bar.unconstrained_font_size = True  # 确保字体大小可调
+    colorbar.label_text_property.font_size = 24  # Increase font size
+    colorbar.label_text_property.color = (0, 0, 0)  # RGB格式，黑色为 (0, 0, 0)
+    colorbar.title_text_property.color = (0, 0, 0)  # Black color for the title
+    colorbar.title_text_property.font_size = 0  # Increase font size
+
+    # Add the lines at axis=10 and axis=30:
+    if axis != None:
+        axis_mapping = {'x': 0, 'y': 1, 'z': 2}
+        axis_index=[i for i in range(3) if i != axis_mapping[axis]]
+        x, y = np.meshgrid(np.linspace(0, A[axis_index[0], axis_index[0]], data.shape[axis_index[0]]), np.linspace(0, A[axis_index[1], axis_index[1]], data.shape[axis_index[1]]))
+
+        # Create the lines for the planes at Z=100 and Z=300
+        z1 = 10 * np.ones_like(x)  # Z=100 plane
+        z2 = 30 * np.ones_like(x)  # Z=300 plane
+
+        # Plot lines at Z=100 and Z=300
+        mlab.plot3d(x.flatten(), y.flatten(), z1.flatten(), color=(0, 0, 0), tube_radius=0.05)  # Line at Z=100
+        mlab.plot3d(x.flatten(), y.flatten(), z2.flatten(), color=(0, 0, 0), tube_radius=0.05)  # Line at Z=300
+
+    
+
+    mlab.view(azimuth=155, elevation=70, distance='auto')
+    # Show the 3d plot:
+    mlab.show()
+
+
+from pathlib import Path
+import os
+
+# 读取数据
+path_cal_res = os.path.dirname(os.path.abspath(__file__))
+dens_whole, atoms_whole = read_cube_data(path_cal_res / Path('den-whole.cube'))
+dens_A, atoms_A = read_cube_data(path_cal_res / Path('den-A.cube'))
+dens_B, atoms_B = read_cube_data(path_cal_res / Path('den-B.cube'))
+
+# 计算差分电荷密度
+dens_diff = dens_whole - (dens_A + dens_B) 
+print(dens_diff.min(),dens_diff.max(),dens_diff.mean())
+
+# cbb_range_list=[0.0002, 0.002, 0.02]
+cbb_range_list=[0.002]
+
+# 绘制差分电荷密度图
+for e in cbb_range_list:
+    # 限制 dens_diff 以避免过小或过大的数值
+    dens_diff_ = np.clip(dens_diff, -e, e)
+    # 选择轮廓线值
+    # contours = [-e/3*2, -e/3, e/3, e/3*2]  # 或者使用 np.linspace 生成一系列轮廓值
+    contours = [-e/2, e/2]  # 或者使用 np.linspace 生成一系列轮廓值
+    if 是否为石墨烯体系 and axis == 'z' and need_plot_3d:
+        plot(atoms_whole, dens_diff_, contours, 'z')
+    elif need_plot_3d:
+        plot(atoms_whole, dens_diff_, contours)
+
+
+
+
+""" 一系列曲线 """
+
+def local_integral_curve(dens_diff, axis='z'):
+    """
+    计算密度差的局部积分曲线（沿指定轴的积分）
+
+    参数：
+    dens_diff : ndarray
+        电荷密度差数据
+    axis : str, 可选, 默认 'z'
+        沿哪个方向计算局部积分，支持 'x', 'y', 'z' 方向
+    """
+    axis_mapping = {'x': 0, 'y': 1, 'z': 2}  # 映射轴名称到数组轴索引
+    if axis not in axis_mapping:
+        raise ValueError("Axis must be 'x', 'y', or 'z'.")
+    
+    # 对除指定轴外的其他轴求和，然后对指定轴进行积分
+    axis_index = axis_mapping[axis]
+    integral_curve = np.sum(dens_diff, axis=tuple(i for i in range(3) if i != axis_index))  # 除去指定轴的其他轴求和
+    return integral_curve
+
+def charge_displacement_curve(dens_diff, axis='z', z_ini=0):
+    """
+    计算电荷位移曲线，即对局部积分曲线进行进一步积分
+
+    参数：
+    dens_diff : ndarray
+        电荷密度差数据
+    axis : str, 可选, 默认 'z'
+        沿哪个方向计算电荷位移曲线，支持 'x', 'y', 'z' 方向
+    z_ini : int, 可选, 默认 0
+        积分起点，表示从该 Z 层次开始积分
+    """
+    axis_mapping = {'x': 0, 'y': 1, 'z': 2}  # 映射轴名称到数组轴索引
+    if axis not in axis_mapping:
+        raise ValueError("Axis must be 'x', 'y', or 'z'.")
+    
+    # 对除指定轴外的其他轴求和，然后对指定轴进行积分
+    axis_index = axis_mapping[axis]
+
+    # 计算局部积分曲线
+    local_integral = local_integral_curve(dens_diff, axis)
+
+    # 进行积分
+    # 假设我们对局部积分曲线进行数值积分
+    z_values = np.arange(dens_diff.shape[axis_index])  # Z 轴上的网格点
+    z_values = z_values[z_values >= z_ini]  # 只考虑从 z_ini 开始的积分部分
+    
+    # 对局部积分曲线进行累积积分，得到电荷位移曲线
+    displacement_curve = np.cumsum(local_integral[z_values])  # 累积分
+    
+
+    return z_values, displacement_curve
+
+def plane_averaged_curve(dens_diff, axis='z', 是否是石墨烯体系=False):
+    """
+    计算平面平均密度差曲线（每个截面的平均密度差）
+    
+    参数：
+    dens_diff : ndarray
+        电荷密度差数据
+    axis : str, 可选, 默认 'z'
+        沿哪个方向计算平面平均，支持 'x', 'y', 'z' 方向
+    """
+    axis_mapping = {'x': 0, 'y': 1, 'z': 2}  # 映射轴名称到数组轴索引
+    if axis not in axis_mapping:
+        raise ValueError("Axis must be 'x', 'y', or 'z'.")
+    
+    # 对除指定轴外的其他轴求和
+    axis_index = axis_mapping[axis]
+    summed_density = np.sum(dens_diff, axis=tuple(i for i in range(3) if i != axis_index))  # 求和
+    
+    axis_index = [i for i in range(3) if i != axis_index]
+    # 计算每个截面的平均密度差
+    if 是否是石墨烯体系:
+        area_xy = dens_diff.shape[axis_index[0]] * dens_diff.shape[axis_index[1]] / 2 * 3**(1/2)
+    else:
+        area_xy = dens_diff.shape[axis_index[0]] * dens_diff.shape[axis_index[1]]  # XY 平面的面积
+    plane_avg_density = summed_density / area_xy  # 除以XY平面的面积，得到平均值
+    return plane_avg_density
+
+
+def plot_curve1(dens_diff,axis='z'):
+    import matplotlib.pyplot as plt
+    from matplotlib.ticker import FuncFormatter, MultipleLocator
+    plt.figure(figsize=(2, 5))  # 设置图像长宽比为1:7
+    axis_mapping = {'x': 0, 'y': 1, 'z': 2}  # 映射轴名称到数组轴索引
+    # 计算电荷位移曲线
+    # axis_values, displacement_curve = charge_displacement_curve(dens_diff, axis, 0)
+
+    # 绘制局部积分曲线
+    axis_values = np.arange(dens_diff.shape[axis_mapping[axis]])  # 获取指定轴的网格点
+    local_integral = local_integral_curve(dens_diff, axis)
+    print(local_integral.min(),local_integral.max(),local_integral.mean())
+    # 绘制电荷位移曲线
+    plt.plot(local_integral, axis_values)
+    # plt.ylabel(f'{axis.upper()}-axis (Grid Points)')
+    # plt.xlabel('Charge Displacement')
+    # plt.title(f'Charge Displacement along {axis.upper()}-axis')
+    # plt.grid(True)
+    plt.ylim(axis_values.min()-1,axis_values.max()+1)
+    plt.gca().invert_yaxis()
+    if  是否为石墨烯体系:
+        plt.ylim(301,99)
+    # 格式化函数
+    def divide_by_10(x, pos):
+        if x==middle:
+            return '0'
+        return f'{-(x-middle)/10:.1f}'  # 显示1位小数，可改成.0f（无小数）或.2f（2位小数）
+    plt.gca().yaxis.set_major_formatter(FuncFormatter(divide_by_10))
+    plt.tight_layout()
+    plt.savefig(os.path.join(save_path, 'ccd1'), dpi=500)
+    plt.show()
+
+def plot_curve2(dens_diff,axis='z'):
+    import matplotlib.pyplot as plt
+    from matplotlib.ticker import FuncFormatter, MultipleLocator
+    plt.figure(figsize=(2, 5))  # 设置图像长宽比为1:7
+    axis_mapping = {'x': 0, 'y': 1, 'z': 2}  # 映射轴名称到数组轴索引
+    # 计算电荷位移曲线
+    axis_values, displacement_curve = charge_displacement_curve(dens_diff, axis, 0)
+
+    print(displacement_curve.min(),displacement_curve.max(),displacement_curve.mean())
+    # 绘制电荷位移曲线
+    plt.plot(displacement_curve, axis_values)
+    # plt.ylabel(f'{axis.upper()}-axis (Grid Points)')
+    # plt.xlabel('Charge Displacement')
+    # plt.title(f'Charge Displacement along {axis.upper()}-axis')
+    # plt.grid(True)
+    plt.ylim(axis_values.min()-1,axis_values.max()+1)
+    plt.gca().invert_yaxis()
+    if  是否为石墨烯体系:
+        plt.ylim(301,99)
+    # 格式化函数
+    def divide_by_10(x, pos):
+        if x==middle:
+            return '0'
+        return f'{-(x-middle)/10:.1f}'  # 显示1位小数，可改成.0f（无小数）或.2f（2位小数）
+    plt.gca().yaxis.set_major_formatter(FuncFormatter(divide_by_10))
+    plt.tight_layout()
+    plt.savefig(os.path.join(save_path, 'ccd2'), dpi=500)
+    plt.show()
+
+def plot_curve3(dens_diff,axis='z',是否是石墨烯体系=False):
+    import matplotlib.pyplot as plt
+    from matplotlib.ticker import FuncFormatter, MultipleLocator
+    plt.figure(figsize=(2, 5))  # 设置图像长宽比为1:7
+    axis_mapping = {'x': 0, 'y': 1, 'z': 2}  # 映射轴名称到数组轴索引
+    # 计算电荷位移曲线
+    # axis_values, displacement_curve = charge_displacement_curve(dens_diff, axis, 0)
+
+    axis_values = np.arange(dens_diff.shape[axis_mapping[axis]])  # 获取指定轴的网格点
+    # 计算平面平均密度差曲线
+    plane_avg_density = plane_averaged_curve(dens_diff, axis)
+    print(plane_avg_density.min(),plane_avg_density.max(),plane_avg_density.mean())
+    # 绘制电荷位移曲线
+    plt.plot(plane_avg_density, axis_values)
+    # plt.ylabel(f'{axis.upper()}-axis (Grid Points)')
+    # plt.xlabel('Charge Displacement')
+    # plt.title(f'Charge Displacement along {axis.upper()}-axis')
+    # plt.grid(True)
+    plt.ylim(axis_values.min()-1,axis_values.max()+1)
+    plt.gca().invert_yaxis()
+    if  是否为石墨烯体系:
+        plt.ylim(301,99)
+    # 格式化函数
+    def divide_by_10(x, pos):
+        if x==middle:
+            return '0'
+        return f'{-(x-middle)/10:.1f}'  # 显示1位小数，可改成.0f（无小数）或.2f（2位小数）
+    plt.gca().yaxis.set_major_formatter(FuncFormatter(divide_by_10))
+    plt.tight_layout()
+    plt.savefig(os.path.join(save_path, 'ccd3'), dpi=500)
+    plt.show()
+
+plot_curve1(dens_diff,axis)
+plot_curve2(dens_diff,axis)
+plot_curve3(dens_diff,axis,是否为石墨烯体系)
 ```
 
 

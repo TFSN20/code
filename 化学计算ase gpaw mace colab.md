@@ -1858,6 +1858,206 @@ plot_curve1(dens_diff,axis)
 plot_curve2(dens_diff,axis)
 plot_curve3(dens_diff,axis,是否为石墨烯体系)
 ```
+## HOMO LUMO
+### 获取gpw（方便多次获取HOMO信息）
+```
+import os
+from ase.units import Bohr
+import numpy as np
+from gpaw import GPAW, PW, restart
+from ase.io import Trajectory
+from pathlib import Path
+from ase.io import write
+
+# 选择轨迹名称和index
+traj_name = 'g_C-F_optiming_keeping.traj'
+traj_index = 8
+
+path_big_file = '/mnt/d/cal'
+path_cal_res = os.path.dirname(os.path.abspath(__file__))
+# 有时一个目录下可能有许多traj文件都需要 则os.path.basename(path_cal_res)+flag
+new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+'onlyg-C-F')
+os.makedirs(new_dir_path, exist_ok=True)
+
+
+
+traj = Trajectory(path_cal_res / Path(traj_name), 'r') 
+system = traj[traj_index]
+
+calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=0.0, kpts=(2,2,1), txt=None)
+system.calc = calc
+print(system)
+print(system.get_potential_energy())
+system.calc.write(new_dir_path / Path('pw_all.gpw'), mode='all')
+```
+### 获取homo lomo波函数
+```
+import os
+from ase.units import Bohr
+import numpy as np
+from gpaw import GPAW, PW, restart
+from ase.io import Trajectory
+from pathlib import Path
+from ase.io import write
+
+
+path_big_file = '/mnt/d/cal'
+path_cal_res = os.path.dirname(os.path.abspath(__file__))
+# 有时一个目录下可能有许多traj文件都需要 则os.path.basename(path_cal_res)+flag
+new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+'onlyg-OH')
+os.makedirs(new_dir_path, exist_ok=True)
+
+
+atoms, calc = restart(new_dir_path / Path('pw_all.gpw'))
+# print(calc.wfs.kpt_qs)
+# print(calc.wfs.kpt_qs[0][0].psit.array.shape)
+# print(len(calc.wfs.kpt_qs))
+
+# 获取轨道和能量
+eigenvalues = calc.get_eigenvalues()  # 获取所有轨道的能量
+homo,lumo = atoms.calc.get_homo_lumo()
+print(eigenvalues)
+print(len(eigenvalues))
+print('nband',calc.get_number_of_bands())
+print('occ occupation_numbers')
+print(calc.get_occupation_numbers())
+print('homo 一般情况: ',(calc.get_occupation_numbers() >= 1.0).sum() - 1)
+print(homo,lumo)
+homo_band = np.abs(eigenvalues - homo).argmin()
+lumo_band = np.abs(eigenvalues - lumo).argmin()
+print(homo_band,lumo_band)
+if lumo_band == homo_band and lumo_band != len(eigenvalues)-1 :
+    lumo_band = homo_band + 1
+print(homo_band,lumo_band)
+# 提取HOMO和LUMO波函数
+homo_wave_function = calc.get_pseudo_wave_function(band=homo_band, kpt = 1, periodic=True)
+lumo_wave_function = calc.get_pseudo_wave_function(band=lumo_band, kpt = 1, periodic=True)
+
+# print('homo_wave_function: ', homo_wave_function)
+# print('lumo_wave_function: ', lumo_wave_function)
+# write(path_cal_res / Path('homo_wave_function.cube'), atoms, data=homo_wave_function * Bohr**1.5)
+# write(path_cal_res / Path('lumo_wave_function.cube'), atoms, data=lumo_wave_function * Bohr**1.5)
+```
+### 显示能级
+```
+import optparse
+import numpy as np
+from ase.calculators.calculator import get_calculator_class
+from ase.data import covalent_radii
+from ase.data.colors import cpk_colors
+from ase.io.cube import read_cube_data
+
+atoms_magnification = 1
+
+def plot(atoms, data, contours):
+    """Plot atoms, unit-cell and iso-surfaces using Mayavi.
+
+    Parameters:
+
+    atoms: Atoms object
+        Positions, atomiz numbers and unit-cell.
+    data: 3-d ndarray of float
+        Data for iso-surfaces.
+    countours: list of float
+        Contour values.
+    """
+
+    # Delay slow imports:
+    import os
+
+    from mayavi import mlab
+
+
+    mlab.figure(1, bgcolor=(1, 1, 1))  # make a white figure
+
+    # Plot the atoms as spheres:
+    for pos, Z in zip(atoms.positions, atoms.numbers):
+        mlab.points3d(*pos,
+                      scale_factor=covalent_radii[Z]*atoms_magnification,
+                      resolution=20,
+                      color=tuple(cpk_colors[Z]))
+
+    # Draw the unit cell:
+    A = atoms.cell
+    # for i1, a in enumerate(A):
+    #     i2 = (i1 + 1) % 3
+    #     i3 = (i1 + 2) % 3
+    #     for b in [np.zeros(3), A[i2]]:
+    #         for c in [np.zeros(3), A[i3]]:
+    #             p1 = b + c
+    #             p2 = p1 + a
+    #             mlab.plot3d([p1[0], p2[0]],
+    #                         [p1[1], p2[1]],
+    #                         [p1[2], p2[2]],
+    #                         tube_radius=0.1)
+
+    cp = mlab.contour3d(data, contours=contours, transparent=True,
+                        opacity=0.7, colormap='viridis')
+    # cp.module_manager.scalar_lut_manager.data_range = [0,0.002]
+
+    # Do some tvtk magic in order to allow for non-orthogonal unit cells:
+    polydata = cp.actor.actors[0].mapper.input
+    pts = np.array(polydata.points) - 1
+    # Transform the points to the unit cell:
+    polydata.points = np.dot(pts, A / np.array(data.shape)[:, np.newaxis])
+    colorbar = mlab.colorbar(cp, title='Density', orientation='vertical', nb_labels=11)
+    # 设置刻度数字颜色为黑色
+    colorbar.scalar_bar.unconstrained_font_size = True  # 确保字体大小可调
+    colorbar.label_text_property.font_size = 10  # Increase font size
+    colorbar.label_text_property.color = (0, 0, 0)  # RGB格式，黑色为 (0, 0, 0)
+    colorbar.title_text_property.color = (0, 0, 0)  # Black color for the title
+    colorbar.title_text_property.font_size = 14  # Increase font size
+
+
+    # Apparently we need this to redraw the figure, maybe it can be done in
+    # another way?
+    mlab.view(azimuth=155, elevation=70, distance='auto')
+    # Show the 3d plot:
+    mlab.show()
+
+
+from pathlib import Path
+import os
+
+# 读取数据
+path_cal_res = os.path.dirname(os.path.abspath(__file__))
+dens_homo, atoms = read_cube_data(path_cal_res / Path('homo_wave_function.cube'))
+dens_lumo, _ = read_cube_data(path_cal_res / Path('lumo_wave_function.cube'))
+print(dens_homo.min(),dens_homo.max())
+print(dens_lumo.min(),dens_lumo.max())
+
+# 检查每个元素的符号
+sign = np.sign(dens_homo)
+
+# 对波函数平方
+dens_homo = np.abs(dens_homo)**2
+
+# 如果原始波函数为负，重新调整符号
+dens_homo *= sign  # 保留符号
+
+# 检查每个元素的符号
+sign = np.sign(dens_lumo)
+
+# 对波函数平方
+dens_lumo = np.abs(dens_lumo)**2
+
+# 如果原始波函数为负，重新调整符号
+dens_lumo *= sign  # 保留符号
+
+
+# dens_homo = np.abs(dens_homo) ** 2
+# dens_lumo = np.abs(dens_lumo) ** 2
+
+contours = [0.001]
+# contours = list(np.linspace(dens.min(),dens.max(),10))
+# plot(atoms,dens_homo,list(np.linspace(dens_homo.min(),dens_homo.max(),5)))
+# plot(atoms,dens_lumo,list(np.linspace(dens_lumo.min(),dens_lumo.max(),5)))
+# plot(atoms,dens_homo,[0.001,dens_homo.max()/5])
+# plot(atoms,dens_lumo,[0.001,dens_lumo.max()/5])
+
+plot(atoms,dens_homo,contours)
+plot(atoms,dens_lumo,contours)
+```
 
 
 

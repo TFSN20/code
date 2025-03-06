@@ -1192,7 +1192,102 @@ write(new_dir_path / Path(f'den-{flag}.cube'), system, data=rho * Bohr**3)
 ```
 ### 载体/平面物
 ```
+import os
+from ase.build import molecule
+from ase.io import write
+from ase.units import Bohr
+from ase.constraints import Hookean, FixAtoms
+from gpaw import GPAW, PW
 
+from ase.io import Trajectory
+from pathlib import Path
+from ase.visualize import view
+
+# 选择轨迹名称和index
+traj_name = 'g_C-COOH_constraint_zn2+_constraint_38-39-4_36-39-5_optiming_keeping.traj'
+traj_index = 84
+# 差分电荷 + flag 用于区分den.cube文件
+flag = 'A'
+
+path_big_file = '/mnt/d/cal'
+path_cal_res = os.path.dirname(os.path.abspath(__file__))
+new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+'-ccd')
+os.makedirs(new_dir_path, exist_ok=True)
+
+traj = Trajectory(path_cal_res / Path(traj_name), 'r') 
+system = traj[traj_index]
+del system.constraints
+k=15
+layer_distance_constraint = [
+                            Hookean(a1=17, a2=36, rt=1.3825931989763465, k=k),
+                            Hookean(a1=17, a2=38, rt=1.3871286855967784, k=k),
+                             FixAtoms([atom.index for atom in system if atom.symbol == 'C' and atom.index not in [17,16,11]])
+                             ]
+del system[[atom.index for atom in system if atom.symbol=='Zn']] #删除所有指定原子
+system.set_constraint(layer_distance_constraint)
+# view(system)
+print(system)
+
+# calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=path_cal_res / Path('system1_output1.txt'))
+calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=+0.0, kpts=(2,2,1), txt=new_dir_path / Path(f'system-{flag}.txt'))
+
+system.calc = calc
+print(system.calc)
+print(system)
+print(system.get_potential_energy())
+# calc.write(new_dir_path / Path('system1_fd.paw'), mode='all')
+
+system.copy().write(new_dir_path / Path('system.traj'))
+
+# create electron density cube file ready for bader
+rho = system.calc.get_all_electron_density(gridrefinement=2)
+write(new_dir_path / Path(f'den-{flag}.cube'), system, data=rho * Bohr**3)
+```
+### 被吸附物的电子密度
+```
+import os
+from ase.build import molecule
+from ase.io import write
+from ase.units import Bohr
+from gpaw import GPAW, PW
+
+from ase.io import Trajectory
+from pathlib import Path
+from ase.visualize import view
+
+# 选择轨迹名称和index
+traj_name = 'g_C-COOH_constraint_zn2+_constraint_38-39-4_36-39-5_optiming_keeping.traj'
+traj_index = 84
+# 差分电荷 + flag 用于区分den.cube文件
+flag = 'B'
+
+path_big_file = '/mnt/d/cal'
+path_cal_res = os.path.dirname(os.path.abspath(__file__))
+new_dir_path = os.path.join(path_big_file, os.path.basename(path_cal_res)+'-ccd')
+os.makedirs(new_dir_path, exist_ok=True)
+
+traj = Trajectory(path_cal_res / Path(traj_name), 'r') 
+system = traj[traj_index]
+del system.constraints
+del system[[atom.index for atom in system if atom.symbol!='Zn']] #删除所有指定原子
+# view(system)
+print(system)
+
+# calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=path_cal_res / Path('system1_output1.txt'))
+calc = GPAW(mode=PW(400), xc='PBE', h=0.2, charge=+2.0, kpts=(2,2,1), txt=new_dir_path / Path(f'system-{flag}.txt'))
+
+system.calc = calc
+print(system.calc)
+print(system)
+print(system.get_potential_energy())
+# calc.write(new_dir_path / Path('system1_fd.paw'), mode='all')
+
+system.copy().write(new_dir_path / Path('system.traj'))
+
+# create electron density cube file ready for bader
+rho = system.calc.get_all_electron_density(gridrefinement=2)
+write(new_dir_path / Path(f'den-{flag}.cube'), system, data=rho * Bohr**3)
+```
 
 
 

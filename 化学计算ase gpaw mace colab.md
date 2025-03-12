@@ -1,3 +1,9 @@
+# 安装
+## 下载软件
+- vscode最新版本
+- Ubuntu 22.04TLS任意版本
+- 电脑开启开发者模式，开启windows功能中的适用于Linux的子系统
+
 # 计算常识
 ## 单位
 - 1 ev = 96 kJ/mol = 23.06 kcal/mol

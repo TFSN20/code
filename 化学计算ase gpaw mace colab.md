@@ -3,6 +3,39 @@
 - vscode最新版本
 - Ubuntu 22.04TLS任意版本
 - 电脑开启开发者模式，开启windows功能中的适用于Linux的子系统
+- 更改apt源，将Uunbutu系统根目录发送到桌面，方便定位。
+- Ubuntu系统自带了Python 3，无需下载，下载pip
+  ```
+  sudo apt install python3-pip
+  ```
+- pip换源
+  ```
+  pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
+  ```
+- 下载ase
+  ```
+  pip install --upgrade ase
+  ```
+- 下载gpaw
+  ```
+  pip install gpaw
+  ```
+  下载出错多试几次
+  - fatal error: xc.h: No such file or directory  
+         14 | #include <xc.h> // If this file is not found, install libxc https://gpaw.readthedocs.io/install.html#libxc-installation  
+            |          ^~~~~~  
+      compilation terminated.  
+      error: command '/usr/bin/x86_64-linux-gnu-gcc' failed with exit code 1
+    需要
+    ```
+    sudo apt-get install libxc-dev
+    ```
+    
+- 下载mace
+  ```
+  pip install mace-torch
+  ```
+  
 
 # 计算常识
 ## 单位

@@ -25,8 +25,8 @@
          14 | #include <xc.h> // If this file is not found, install libxc https://gpaw.readthedocs.io/install.html#libxc-installation  
             |          ^~~~~~  
       compilation terminated.  
-      error: command '/usr/bin/x86_64-linux-gnu-gcc' failed with exit code 1
-    需要
+      error: command '/usr/bin/x86_64-linux-gnu-gcc' failed with exit code 1  
+    出现这个说明需要
     ```
     sudo apt-get install libxc-dev
     ```

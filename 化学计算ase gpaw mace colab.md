@@ -44,6 +44,10 @@
     ERROR: Program or command 'python3' not found or not executable  
     metadata-generation-failed  
     需要在python.exe目录将python.exe复制为python3.exe
+    完成之后还会
+     ..\meson.build:6:13: ERROR: Command `E:\Softwares\Python312\python3.EXE discover_version.py` failed with status 1.
+    需要
+    
   
 
 # 计算常识

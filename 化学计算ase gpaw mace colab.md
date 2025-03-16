@@ -40,6 +40,10 @@
   ```
   pip install mace-torch
   ```
+  - 出现
+    ERROR: Program or command 'python3' not found or not executable  
+    metadata-generation-failed  
+    需要在python.exe目录将python.exe复制为python3.exe
   
 
 # 计算常识

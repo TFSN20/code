@@ -22,13 +22,18 @@
   ```
   下载出错多试几次
   - fatal error: xc.h: No such file or directory  
-         14 | #include <xc.h> // If this file is not found, install libxc https://gpaw.readthedocs.io/install.html#libxc-installation  
-            |          ^~~~~~  
-      compilation terminated.  
-      error: command '/usr/bin/x86_64-linux-gnu-gcc' failed with exit code 1  
+         14 | #include <xc.h> // If this file is not found, install libxc https://gpaw.readthedocs.io/install.html#libxc-installation   
     出现这个说明需要
     ```
     sudo apt-get install libxc-dev
+    ```
+  - /usr/bin/ld: cannot find -lblas: No such file or directory  
+      collect2: error: ld returned 1 exit status  
+      error: command '/usr/bin/x86_64-linux-gnu-gcc' failed with exit code 1
+    说明需要
+    ```
+    sudo apt-get install libblas-dev libatlas-base-dev
+    sudo apt install gcc
     ```
     
 - 下载mace

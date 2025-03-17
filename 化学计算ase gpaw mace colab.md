@@ -45,8 +45,14 @@
     metadata-generation-failed  
     需要在python.exe目录将python.exe复制为python3.exe
     完成之后还会
+    nstalling build dependencies ... done  
+    Getting requirements to build wheel ... done   
+    Preparing metadata (pyproject.toml) ... error   
+    error: subprocess-exited-with-error  
+
+    × Preparing metadata (pyproject.toml) did not run successfully.   
      ..\meson.build:6:13: ERROR: Command `E:\Softwares\Python312\python3.EXE discover_version.py` failed with status 1.
-    需要
+    说明python版本可能过高比如3.13对于mace0.3.12就不行，有上面问题。
     
   
 

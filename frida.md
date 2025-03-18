@@ -109,6 +109,10 @@
   ```
   adb shell su -c "kill -9 9820"
   ```
+  或者
+  ```
+  adb kill-server
+  ``
 - 转发端口：
   ```
   adb forward tcp:27777 tcp:27777

@@ -25,6 +25,10 @@
   ```
   adb push "D:\Downloads\frida-server-16.4.8-android-arm64\frida-server" /data/local/tmp/
   ```
+  - 查看权限：
+  ```
+  adb shell ls -l /data/local/tmp/frida-server
+  ```
   - 最高权限：
   ```
   adb shell

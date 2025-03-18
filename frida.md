@@ -173,6 +173,19 @@
   ```
 - 文件描述符（file descriptors）检测，每个文件描述符是一个符号链接，指向它所引用的文件或资源：frida-server运行时会涉及创建和管理符号链接，"/proc/self/fd/"目录下记录了这些链接，当链接中包含可疑字符时即检测到。这些链接以\开头，所以只需要strstr第二个参数（可疑字符）判断是否在第一个参数（链接）内即可。
 - map文件检测：`/proc/self/maps` 是一个特殊的文件，它包含了当前进程的内存映射信息。当你打开这个文件时，它会显示一个列表，其中包含了进程中每个内存区域的详细信息。其中包含frida-xxx.so等文件（文件路径（如果该内存区域映射了一个文件））。
-## 无法调试
+## 无法调试和一些问题
 - frida调试时，有些app会停在启动页面，这时候的hook代码都是不起作用的！！！（有些还会重启手机）这时候就需要使用终端模式注入了，速度更快，因为一些app整体代码比较简单，加载反调试较为靠前。
+- 调用rpc函数时
+  ```
+  result = script.exports_sync.greet('world')
+  aaa = script.exports_sync.asyncfetch()
+  print(f"Greet result: {result}")
+  print(f"async result: {aaa}")
+  ```
+  正确，但是
+  ```
+  print(f"Greet result: {script.exports_sync.greet('world')}")
+  print(f"async result: {script.exports_sync.asyncfetch()}")
+  ```
+  错误：script has been destroyed，因为异步函数在python的模板字符串中不行。
   

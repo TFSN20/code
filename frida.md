@@ -187,5 +187,10 @@
   print(f"Greet result: {script.exports_sync.greet('world')}")
   print(f"async result: {script.exports_sync.asyncfetch()}")
   ```
-  错误：script has been destroyed，因为异步函数在python的模板字符串中不行。
+  或者
+  ```
+  print(f"async result: {script.exports_sync.asyncfetch()}")
+  print(f"Greet result: {script.exports_sync.greet('world')}")
+  ```  
+  都错误：script has been destroyed，因为调用一次以上的函数时，异步函数在python的模板字符串中不行。
   

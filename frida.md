@@ -101,6 +101,14 @@
   cd /data/local/tmp
   ./av -l 127.0.0.1:27777 &
   ```
+- 查看android frida端口
+  ```
+  adb shell ps | findstr frida
+  ```
+  杀死该端口：
+  ```
+  adb shell su -c "kill -9 9820"
+  ```
 - 转发端口：
   ```
   adb forward tcp:27777 tcp:27777

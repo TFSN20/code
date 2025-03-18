@@ -4,6 +4,14 @@
   ```
   - 下载frida-server：https://github.com/frida/frida/releases
   - 一个对应：frida-16.4.8，frida-tools-12.5.0
+- 查看tcp为5037的占用情况
+  ```
+  netstat -ano | findstr :5037
+  ```
+  根据PID杀死进程
+  ```
+  taskkill /PID 进程的PID /F
+  ```
 - 库安装：
   ```
   pip install frida

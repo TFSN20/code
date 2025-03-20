@@ -103,16 +103,13 @@
   ```
 - 查看android frida端口
   ```
-  adb shell ps | findstr frida
+  adb kill-server
+  adb shell ps | findstr av
   ```
   杀死该端口：
   ```
   adb shell su -c "kill -9 9820"
   ```
-  或者
-  ```
-  adb kill-server
-  ``
 - 转发端口：
   ```
   adb forward tcp:27777 tcp:27777

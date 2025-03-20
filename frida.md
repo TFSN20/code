@@ -116,6 +116,68 @@
   netstat -aon | findstr :27777
   frida-ps -U
   ```
+- js函数
+  ```
+  let fn = function () {
+      console.log('fn will java perform')
+      Java.perform(function () {
+          console.log('fn will hook');
+  
+          var WebView = Java.use("android.webkit.WebView");
+  
+          WebView.loadUrl.overload("java.lang.String").implementation = function (s) {
+  
+              this.loadUrl.overload("java.lang.String").call(this, s);
+          };
+  
+      })
+  }
+  ```
+- python启动
+  ```
+  import frida
+  import sys
+  
+  PACKAGE = 'com.greenpoint.android.mc10086.activity'
+  HOST = '127.0.0.1:27777'
+  
+  def on_message(message,data):
+      if message['type'] == 'send':
+          print(message['payload'])
+      elif message['type'] == 'error':
+          print(message['stack'])
+  
+  if __name__ == '__main__':
+      try:
+  
+          manager = frida.get_device_manager()
+          device = manager.add_remote_device(HOST)
+          jscode = open(r'D:\cal\1.js','r',encoding='UTF-8').read()
+          pid = device.spawn([PACKAGE])
+          session = device.attach(pid)
+  
+          '''
+          attach模式
+          '''
+          # manager = frida.get_device_manager()
+          # device= manager.add_remote_device(HOST)
+          # jscode = open(r'D:\cal\1.js','r',encoding='UTF-8').read()
+          # session = device.attach('中国移动')
+          
+  
+          script = session.create_script(jscode)
+          script.on('message',on_message)
+          script.load()
+
+        script.exports_sync.hook_webvi()
+
+        device.resume(pid)
+
+        sys.stdin.read()
+    except Exception as e:
+        print(e)
+        print('frida hook error')
+  ```
 - 查看app pid（运行状态）
   ```
   adb shell ps | findstr package_name

@@ -120,17 +120,19 @@
   ```
   let fn = function () {
       console.log('fn will java perform')
+      console.log(Java.available);
       Java.perform(function () {
-          console.log('fn will hook');
+          try {
+              console.log('fn will hook');
+              var Activity = Java.use('android.app.Activity');
+              Activity.onResume.implementation = function () {
   
-          var WebView = Java.use("android.webkit.WebView");
+              };
+          } catch (e) {
+              console.log('Error: ' + e);
+          }
+      });
   
-          WebView.loadUrl.overload("java.lang.String").implementation = function (s) {
-  
-              this.loadUrl.overload("java.lang.String").call(this, s);
-          };
-  
-      })
   }
   ```
 - python启动

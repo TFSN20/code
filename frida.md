@@ -170,12 +170,10 @@
           script = session.create_script(jscode)
           script.on('message',on_message)
           script.load()
-
-        script.exports_sync.hook_webvi()
-
-        device.resume(pid)
-
-        sys.stdin.read()
+          device.resume(pid) #恢复在加载后，调用前
+  
+          script.exports_sync.hook_webvi()
+          sys.stdin.read()
     except Exception as e:
         print(e)
         print('frida hook error')

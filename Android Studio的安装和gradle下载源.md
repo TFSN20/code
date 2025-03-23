@@ -63,6 +63,7 @@ app:backgroundTint="@color/mainBtnColor"
 ## 环境
 - 下载新版android studio（as）
 - 禁用部署优化，以便模块自动更新：as界面顶部栏的run展开有一项edit Configurations，勾选Always install with package manager (disables deploy optimizations on Android 11 and later)
+- apk一直出现waiting for debugger解决：https://blog.csdn.net/BFELFISH/article/details/103405186
 ## 模块开发
 - 新建项目，使用无界面或空界面（建议空界面）
 - 识别为模块：在AndroidManifest.xml里的application标签内增加元数据，

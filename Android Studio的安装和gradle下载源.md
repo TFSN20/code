@@ -58,5 +58,58 @@
 ```
 app:backgroundTint="@color/mainBtnColor"
 ```
+
+# lsposed 之xposed模块开发
+## 环境
+- 下载新版android studio（as）
+- 禁用部署优化，以便模块自动更新：as界面顶部栏的run展开有一项edit Configurations，勾选Always install with package manager (disables deploy optimizations on Android 11 and later)
+## 模块开发
+- 新建项目，使用无界面或空界面（建议空界面）
+- 识别为模块：在AndroidManifest.xml里的application标签内增加元数据，
+  ```
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true" />
+
+        <meta-data
+            android:name="xposeddescription"
+            android:value="这是一个Xposed例程" />
+
+        <meta-data
+            android:name="xposedminversion"
+            android:value="82" />
+  ```
+- 引入xposed api，以便hook  
+  - 在app下的build.gradle.kts文件内的dependencies里增加如下，仅仅编译。
+    ```
+    compileOnly("de.robv.android.xposed:api:82")
+    ```
+  - 在项目下的settings.gradle.kts文件内的dependencyResolutionManagement里的repositories增加首位阿里源
+    ```
+    maven { url = uri("https://maven.aliyun.com/repository/public/") }
+    ```
+- 在app->src->main->java->包名下新建hook函数java class文件，在app->src->main下新建Assets floder文件夹，再在Assets floder文件夹下新建file文件，命名为xposed_init作为入口点assets文件（用于lsposed识别hook函数位置）
+- HookTest.java
+  ```
+  package com.example.lsp;
   
+  import de.robv.android.xposed.callbacks.XC_LoadPackage;
+  import de.robv.android.xposed.IXposedHookLoadPackage;
+  import de.robv.android.xposed.XposedBridge;
+  public class HookTest  implements IXposedHookLoadPackage{
+  
+      public void handleLoadPackage(XC_LoadPackage.LoadPackageParam loadPackageParam) throws Throwable {
+          if (loadPackageParam.packageName.equals("com.greenpoint.android.mc10086.activity")) {
+              // 执行针对该应用的Hook逻辑
+              XposedBridge.log(loadPackageParam.packageName);
+          }
+  
+      }
+  
+  }
+  ```
+- xposed_init
+  ```
+  com.example.lsp.HookTest
+  ```
 

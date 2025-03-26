@@ -101,6 +101,12 @@
   cd /data/local/tmp
   ./av -l 127.0.0.1:27777 &
   ```
+  ```
+  adb shell
+  su
+  cd /data/local/tmp
+  ./av -l 0.0.0.0:27777 &
+  ```
 - 查看android frida端口
   ```
   adb kill-server

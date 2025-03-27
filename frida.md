@@ -126,7 +126,7 @@
   ```
   adb forward tcp:27777 tcp:27777
   netstat -aon | findstr :27777
-  adb shell "netstat -tuln | grep 27777"
+  adb shell "netstat -tuln | grep 27777"  
   frida-ps -U
   ```
 - js函数

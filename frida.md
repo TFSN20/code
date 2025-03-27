@@ -105,7 +105,7 @@
   adb shell
   su
   cd /data/local/tmp
-  chmod 777 av
+  chmod 777 av  
   ./av -l 0.0.0.0:27777 &
   ```
 - 查看android frida端口

@@ -60,5 +60,9 @@
   ```
   docker-compose up -d
   ```
+- 容器详细
+  ```
+  docker ps
+  ```
 ## 常用功能
-- 容器管理，镜像查看都可以在docker desptop进行。
+- 容器管理，镜像查看，容器详细都可以在docker desptop进行。

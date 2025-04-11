@@ -25,11 +25,26 @@
   }
   ```
 - 消注释阿里云镜像下载源image行，注释掉原来的下载源。
+- 设置代理。
+  ```
+  regexp:.*\.docker\.com.*,
+  regexp:.*\.docker\.io.*
+  ```
+- 设置镜像文件夹位置：docker desktop -> settings -> Resources -> Advanced -> Disk image location(brower) -> Apply & restart(等待一会)
 - 进入FastGPT目录，下载镜像
   ```
   docker-compose -f docker-compose-pgvector.yml pull
   ```
   如果yml名为docker-compose.yml，可以直接
+  ```
+  docker-compose pull
+  ```
+## 常用命令
+- 查看镜像
+  ```
+  docker images
+  ```
+- 拉取镜像
   ```
   docker-compose pull
   ```

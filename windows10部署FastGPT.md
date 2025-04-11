@@ -78,19 +78,21 @@
   ```
   https://api.chatanywhere.tech/#/
   ```
-- 硅基流动，注册就送14元，邀请一人得14元。美。fastgpt对于硅基流动没有内置太多模型，更多的需要自己手动添加模型ID，或进行模型映射（名称可以点击模型直接复制的哪个，通常带有/）。
+- 硅基流动，注册就送14元，邀请一人得14元，相当于deepseek-ai/DeepSeek-R1的100万tokens。
+  fastgpt对于硅基流动没有内置太多模型，更多的需要自己手动添加模型ID，或进行模型映射（名称可以点击模型直接复制的哪个，通常带有/）。
   ```
   https://cloud.siliconflow.cn/account/ak
   ```
-- 同义千问，100万tokens
+- 同义千问，100万tokens，可惜有6个月期限。
   ```
   https://bailian.console.aliyun.com/?tab=model#/api-key
   ```
-- 月之暗面，送10元，相当于moonshot-v1-128k的100万tokens
+- 月之暗面，送10元，相当于moonshot-v1-128k的100万tokens，可惜每分钟最多3万多tokens。
   ```
   https://platform.moonshot.cn/console/api-keys
   ```
-- openai不建议使用，扣扣索索，还会过期。grok需要消费5美元，并开启数据共享，每月就能享受150美元免费额度。
+- openai现在已经不赠送。
+  grok需要消费5美元，并开启数据共享，每月就能享受150美元免费额度，0.6美元就能获得100万tokens，150美元我都不知道怎么用，可惜没有外国银行卡，不然高低整一个。
 ## 常用命令
 - 查看镜像
   ```

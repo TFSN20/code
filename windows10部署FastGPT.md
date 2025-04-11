@@ -39,6 +39,7 @@
   ```
   docker-compose pull
   ```
+## 使用
 - 启动容器
   ```
   docker-compose -f docker-compose-pgvector.yml up -d
@@ -46,6 +47,14 @@
   如果yml名为docker-compose.yml，可以直接
   ```
   docker-compose up -d
+  ```
+- 访问fastgpt
+  ```
+  localhost:3000
+  ```
+- one api访问
+  ```
+  localhost:3001
   ```
 ## 常用命令
 - 查看镜像

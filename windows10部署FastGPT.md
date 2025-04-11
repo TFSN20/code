@@ -61,6 +61,24 @@
   ```
   localhost:3001
   ```
+## 常用api
+- gemini，好啊好啊， 1,000,000 TPM + 1,500 RPD + 15 RPM，用这个分析小说简直不要太美。
+  ```
+  https://aistudio.google.com/apikey
+  ```
+- chateverything，免费，支持openai索引模型和3.5turbo，但input限制4096tokens
+  ```
+  https://github.com/chatanywhere/GPT_API_free
+  ```
+- 硅基流动，注册就送14元，邀请一人得14元。美。fastgpt对于硅基流动没有内置太多模型，更多的需要自己手动添加模型ID，或进行模型映射（名称可以点击模型直接复制的哪个，通常带有/）。
+  ```
+  https://cloud.siliconflow.cn/account/ak
+  ```
+- 同义千问，100万tokens
+  ```
+  https://bailian.console.aliyun.com/?tab=model#/api-key
+  ```
+- openai不建议使用，扣扣索索，还会过期。grok需要消费5美元，并开启数据共享，每月就能享受150美元免费额度。
 ## 常用命令
 - 查看镜像
   ```

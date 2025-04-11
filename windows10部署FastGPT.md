@@ -91,6 +91,10 @@
   ```
   https://platform.moonshot.cn/console/api-keys
   ```
+- 字节豆包api，50万免费额度不限时，需要用哪个模型还需要手动开通。
+  ```
+  https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey?apikey=%7B%7D
+  ```
 - openai现在已经不赠送。
   grok需要消费5美元，并开启数据共享，每月就能享受150美元免费额度，0.6美元就能获得100万tokens，150美元我都不知道怎么用，可惜没有外国银行卡，不然高低整一个。
 ## 常用命令

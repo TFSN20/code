@@ -95,8 +95,11 @@
   ```
   https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey?apikey=%7B%7D
   ```
-- openai现在已经不赠送。
+- openai现在已经不赠送。  
   grok需要消费5美元，并开启数据共享，每月就能享受150美元免费额度，0.6美元就能获得100万tokens，150美元我都不知道怎么用，可惜没有外国银行卡，不然高低整一个。
+  ```
+  https://console.x.ai/
+  ```
 ## 常用命令
 - 查看镜像
   ```

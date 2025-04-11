@@ -86,6 +86,10 @@
   ```
   https://bailian.console.aliyun.com/?tab=model#/api-key
   ```
+- 月之暗面，送10元，相当于moonshot-v1-128k的100万tokens
+  ```
+  https://platform.moonshot.cn/console/api-keys
+  ```
 - openai不建议使用，扣扣索索，还会过期。grok需要消费5美元，并开启数据共享，每月就能享受150美元免费额度。
 ## 常用命令
 - 查看镜像

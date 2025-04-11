@@ -70,6 +70,10 @@
   ```
   https://github.com/chatanywhere/GPT_API_free
   ```
+  查看消费详细：
+  ```
+  https://api.chatanywhere.tech/#/
+  ```
 - 硅基流动，注册就送14元，邀请一人得14元。美。fastgpt对于硅基流动没有内置太多模型，更多的需要自己手动添加模型ID，或进行模型映射（名称可以点击模型直接复制的哪个，通常带有/）。
   ```
   https://cloud.siliconflow.cn/account/ak

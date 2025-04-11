@@ -39,6 +39,14 @@
   ```
   docker-compose pull
   ```
+- 启动容器
+  ```
+  docker-compose -f docker-compose-pgvector.yml up -d
+  ```
+  如果yml名为docker-compose.yml，可以直接
+  ```
+  docker-compose up -d
+  ```
 ## 常用命令
 - 查看镜像
   ```
@@ -47,4 +55,8 @@
 - 拉取镜像
   ```
   docker-compose pull
+  ```
+- 启动容器
+  ```
+  docker-compose up -d
   ```

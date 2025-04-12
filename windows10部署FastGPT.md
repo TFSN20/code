@@ -95,7 +95,10 @@
   ```
   https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey?apikey=%7B%7D
   ```
-- openai现在已经不赠送。  
+- openai现在已经不赠送。
+  ```
+  https://platform.openai.com/settings/organization/api-keys
+  ```
   grok需要消费5美元，并开启数据共享，每月就能享受150美元免费额度，0.6美元就能获得100万tokens，150美元我都不知道怎么用，可惜没有外国银行卡，不然高低整一个。
   ```
   https://console.x.ai/
@@ -119,7 +122,23 @@
   ```
 ## 常用功能
 - 容器管理，镜像查看，容器详细都可以在docker desptop进行。
-## 模型价格
-- 文本向量模型
-  - text-embedding-3-large：0.01 美元/百万tokens
-  - text-embedding-v3：0.07 元
+## 模型价格 | 限制 (输入，输出（每百万tokens）| Batch API price（默认为一半）|限制)
+### 语言模型
+- gemini
+  ```
+  https://aistudio.google.com/plan_information
+  ```
+  - gemini-2.5-flash: $0.10, $0.40 | 没找到相关信息 | TPM: 4,000,000; RPM: 2,000;
+- openai
+  ```
+  https://platform.openai.com/docs/pricing
+  ```
+  - gpt-3.5-turbo-0125: $0.5, $1.5 | | TPM: 200,000; RPM: 3,500; RPD: 10,000
+  - gpt-3.5-turbo(gpt-3.5-turbo-16k-0613): $3.00, $4.00 |
+  - gpt-4o-mini(gpt-4o-mini-2024-07-18): $0.15, $0.60 | | TPM: 200,000; RPM: 500; RPD: 10,000
+  - gpt-4o-mini-search-preview(gpt-4o-mini-search-preview-2025-03-11): $0.15, $0.60 | | TPM: 200,000; RPM: 500; RPD: 10,000
+### 文本向量模型
+- openai
+  - text-embedding-3-small：$0.02 | | TPM： 1,000,000; RPM: 3,000
+  - text-embedding-3-large：$0.13 | | TPM： 1,000,000; RPM: 3,000
+  - text-embedding-ada-002：$0.10 | | TPM： 1,000,000; RPM: 3,000

@@ -142,3 +142,5 @@
   - text-embedding-3-small：$0.02 | | TPM： 1,000,000; RPM: 3,000
   - text-embedding-3-large：$0.13 | | TPM： 1,000,000; RPM: 3,000
   - text-embedding-ada-002：$0.10 | | TPM： 1,000,000; RPM: 3,000
+- chatanywhere
+  - 三种文本嵌入向量模型共享一天200次请求的额度。和聊天api额度分开的。

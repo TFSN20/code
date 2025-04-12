@@ -70,7 +70,7 @@
   ```
   https://aistudio.google.com/apikey
   ```
-- chateverything，免费，支持openai索引模型和3.5turbo，但input限制4096tokens
+- chatanywhere，免费，支持openai索引模型和3.5turbo，但input限制4096tokens
   ```
   https://github.com/chatanywhere/GPT_API_free
   ```

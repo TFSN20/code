@@ -119,3 +119,7 @@
   ```
 ## 常用功能
 - 容器管理，镜像查看，容器详细都可以在docker desptop进行。
+## 模型价格
+- 文本向量模型
+  - text-embedding-3-large：0.01 美元/百万tokens
+  - text-embedding-v3：0.07 元

@@ -144,3 +144,8 @@
   - text-embedding-ada-002：$0.10 | | TPM： 1,000,000; RPM: 3,000
 - chatanywhere
   - 三种文本嵌入向量模型共享一天200次请求的额度。和聊天api额度分开的。
+- 硅基流动
+  - BAAI/bge-m3: Free | | RPM: 2,000; TPM: 500,000
+  - BAAI/bge-large-zh-v1.5: Free | | RPM: 2,000; TPM: 500,000
+- 阿里云百练
+  - text-embedding-v3: ¥0.5 | 没有相关信息 | RPM: 1,800(RPS: 30); TPM: 1,200,000

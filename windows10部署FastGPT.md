@@ -142,7 +142,7 @@
   https://bailian.console.aliyun.com/?tab=model#/model-market
   ```
   免费1,000,000 6个月;
-  - qwen-turbo/qwen-turbo-latest:  1M; ¥0.3, ¥0.6 | | QPM：1,200; TPM：5,000,000
+  - qwen-turbo/qwen-turbo-latest:  1M; ¥0.3, ¥0.6 | | QPM：1,200; TPM：5,000,000 | 免费tokesn实测1秒20次并发
   - qwen-plus/qwen-plus-latest: 128k; ¥0.8, ¥0.2 | | QPM：15,000/6,00; TPM：1,200,000/1,000,000
   - qwen-max/qwen-max-latest: 32K/128K; ¥2.4, ¥9.6 | | QPM：1,200; TPM：1,000,000
 ### 文本向量模型

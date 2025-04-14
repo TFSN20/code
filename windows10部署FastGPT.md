@@ -137,6 +137,14 @@
   - gpt-3.5-turbo(gpt-3.5-turbo-16k-0613): $3.00, $4.00 |
   - gpt-4o-mini(gpt-4o-mini-2024-07-18): $0.15, $0.60 | | TPM: 200,000; RPM: 500; RPD: 10,000
   - gpt-4o-mini-search-preview(gpt-4o-mini-search-preview-2025-03-11): $0.15, $0.60 | | TPM: 200,000; RPM: 500; RPD: 10,000
+- 阿里云百练
+  ```
+  https://bailian.console.aliyun.com/?tab=model#/model-market
+  ```
+  免费1,000,000 6个月;
+  - qwen-turbo/qwen-turbo-latest:  1M; ¥0.3, ¥0.6 | | QPM：1,200; TPM：5,000,000
+  - qwen-plus/qwen-plus-latest: 128k; ¥0.8, ¥0.2 | | QPM：15,000/6,00; TPM：1,200,000/1,000,000
+  - qwen-max/qwen-max-latest: 32K/128K; ¥2.4, ¥9.6 | | QPM：1,200; TPM：1,000,000
 ### 文本向量模型
 - openai
   - text-embedding-3-small：$0.02 | | TPM： 1,000,000; RPM: 3,000

@@ -66,7 +66,7 @@
     https://doc.fastgpt.cn/docs/development/modelconfig/ai-proxy/
     ```
 ## 常用api
-- gemini，好啊好啊， 1,000,000 TPM + 1,500 RPD + 15 RPM，用这个分析小说简直不要太美。
+- gemini，1,000,000 TPM + 1,500 RPD + 15 RPM，用这个分析小说简直不要太美，只可惜一分钟只能请求15次
   ```
   https://aistudio.google.com/apikey
   ```

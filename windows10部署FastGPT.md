@@ -120,6 +120,13 @@
   ```
   docker ps
   ```
+- 镜像站是否可用
+  ```
+  docker manifest inspect registry.cn-hangzhou.aliyuncs.com/labring/aiproxy:v0.1.3
+  ```
+  ```
+  docker manifest inspect registry.cn-hangzhou.aliyuncs.com/fastgpt/fastgpt:v4.9.4
+  ```
 ## 常用功能
 - 容器管理，镜像查看，容器详细都可以在docker desptop进行。
 ## 模型价格 | 限制 (输入，输出（每百万tokens）| Batch API price（默认为一半）|限制)

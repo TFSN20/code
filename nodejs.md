@@ -32,6 +32,10 @@
     ```
     npm config set registry https://registry.npmmirror.com/
     ```
+  - 文件夹权限
+    ```
+    赋予Authenticated Users用户完全控制权限对于nojs安装目录
+    ```
 - 常用功能
   - 查看模块安装位置
     ```

@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/fa605f6e-92d5-4d7f-8c0e-5eb2c5896a5c)## MCP
+## MCP
 - Model Context Protocol (模型上下文协议)
 - AI：LLMs（大语言模型）
 - MCP server：AI与外部工具的中间层。

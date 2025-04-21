@@ -61,4 +61,11 @@
     ```
     npm config get userconfig
     ```
+  - 初始化项目
+    ```
+    npm init
+    ```
+    ```
+    npm init -y
+    ```
     

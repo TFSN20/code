@@ -57,7 +57,7 @@
     ```
     npm config get registry
     ```
-  - 查看下载源配置文件位置
+  - 查看配置文件位置
     ```
     npm config get userconfig
     ```

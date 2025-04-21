@@ -20,6 +20,10 @@
     ```
     npm config set cache "node_cache路径"
     ```
+  - 修改全局模块prefix位置的用户环境变量
+    ```
+    C:\Users\Administrator\AppData\Roaming\npm 改为 D:\ProgramFiles\Codes\nodejs\node_global
+    ```
 - 常用功能
   - 查看模块安装位置
     ```
@@ -36,5 +40,9 @@
   - 查看模块缓存位置
     ```
     npm config get cache
+    ```
+  - 查看全局模块prefix
+    ```
+    npm config get prefix
     ```
     

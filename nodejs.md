@@ -24,6 +24,10 @@
     ```
     C:\Users\Administrator\AppData\Roaming\npm 改为 D:\ProgramFiles\Codes\nodejs\node_global
     ```
+  - 新增NODE_PATH系统变量
+    ```
+    D:\ProgramFiles\Codes\nodejs\node_global\node_modules
+    ```
 - 常用功能
   - 查看模块安装位置
     ```

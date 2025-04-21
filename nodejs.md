@@ -28,7 +28,7 @@
     ```
     D:\ProgramFiles\Codes\nodejs\node_global\node_modules
     ```
-  - 修改镜像源
+  - 修改镜像源（默认https://registry.npmjs.org/）
     ```
     npm config set registry https://registry.npmmirror.com/
     ```

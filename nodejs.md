@@ -28,6 +28,10 @@
     ```
     D:\ProgramFiles\Codes\nodejs\node_global\node_modules
     ```
+  - 修改镜像源
+    ```
+    npm config set registry https://registry.npmmirror.com/
+    ```
 - 常用功能
   - 查看模块安装位置
     ```
@@ -48,5 +52,9 @@
   - 查看全局模块prefix
     ```
     npm config get prefix
+    ```
+  - 查看下载源
+    ```
+    npm config get registry
     ```
     

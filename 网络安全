@@ -1,2 +1,4 @@
 # 基本概念
 - www.a.b.c, test1.news.a.b.c: a.b.c是顶级域名, www是二级域名。
+- ping时先去本地host文件看有没有对应的ip地址，有则直接使用，没有则向dns服务器（Internet 协议版本 4 (TCP/IPv4)里面，使用下面的 DNS 服务器地址设置dns服务器，不建议自动，自动会从路由器获取）获取
+，

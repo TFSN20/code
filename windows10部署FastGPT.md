@@ -1,3 +1,6 @@
+# win11纯wsl2和ubuntu部署
+- 不要将 pgvector 和 mongo 的镜像直接改为 latest。因为对于数据库来说，大版本升级（例如 PostgreSQL 15 -> 16，MongoDB 5.x -> 7.x）通常包含不兼容的改动。直接使用 latest 风险极高。其他则使用latest
+
 ## 下载
 - 下载Ubuntu。只能安装在C盘，可使用mklink更改位置。
 - 管理员cmd执行以下命令，将wsl更改为2, Ubuntu-22.04为下载的Ubuntu。

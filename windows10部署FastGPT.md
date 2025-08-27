@@ -1,5 +1,70 @@
 # win11纯wsl2和ubuntu部署
 - 不要将 pgvector 和 mongo 的镜像直接改为 latest。因为对于数据库来说，大版本升级（例如 PostgreSQL 15 -> 16，MongoDB 5.x -> 7.x）通常包含不兼容的改动。直接使用 latest 风险极高。其他则使用latest
+- curl等永久代理
+  ```
+  nano ~/.bashrc
+  ```
+  ```
+  # Set proxy for Windows host
+  export host_ip=$(ip route | grep default | awk '{print $3}')
+  export http_proxy="http://${host_ip}:10809"
+  export https_proxy="http://${host_ip}:10809"
+  export no_proxy="localhost,127.0.0.1,*.local"
+  ```
+- docker代理（每次需要重新运行）
+  ```
+  #!/bin/bash
+  
+  # --- 在这里修改您的V2RayN HTTP代理端口 ---
+  PROXY_PORT=10808
+  # -----------------------------------------
+  
+  echo "--- 开始为Docker配置代理 ---"
+  
+  # 1. 自动获取Windows主机的IP地址
+  #    我们使用您建议的命令，这是最可靠的方法之一。
+  HOST_IP=$(ip route | grep default | awk '{print $3}')
+  
+  # 检查是否成功获取IP
+  if [ -z "$HOST_IP" ]; then
+      echo "错误：无法自动获取Windows主机的IP地址。请检查网络配置。"
+      exit 1
+  fi
+  
+  echo "成功检测到Windows主机IP为: ${HOST_IP}"
+  echo "将使用代理地址: http://${HOST_IP}:${PROXY_PORT}"
+  
+  # 2. 创建Docker服务的代理配置文件目录
+  sudo mkdir -p /etc/systemd/system/docker.service.d
+  
+  # 3. 使用 here document 的方式，动态生成并写入配置文件
+  #    这将把代理设置写入到Docker的服务配置中
+  sudo tee /etc/systemd/system/docker.service.d/http-proxy.conf > /dev/null <<EOF
+  [Service]
+  Environment="HTTP_PROXY=http://${HOST_IP}:${PROXY_PORT}"
+  Environment="HTTPS_PROXY=http://${HOST_IP}:${PROXY_PORT}"
+  Environment="NO_PROXY=localhost,127.0.0.1"
+  EOF
+  
+  echo "代理配置文件已成功创建。"
+  
+  # 4. 重新加载systemd配置并重启Docker服务以使配置生效
+  echo "正在重新加载配置并重启Docker服务..."
+  sudo systemctl daemon-reload
+  sudo service docker restart
+  
+  # 等待Docker服务重启
+  sleep 5
+  
+  echo "Docker服务已重启。"
+  
+  # 5. 验证配置是否生效
+  echo "--- 验证代理配置 ---"
+  docker info | grep -i "proxy"
+  
+  echo "--- 配置完成 ---"
+  echo "现在您可以正常使用 'docker-compose pull' 命令了。"
+  ```
 
 ## 下载
 - 下载Ubuntu。只能安装在C盘，可使用mklink更改位置。

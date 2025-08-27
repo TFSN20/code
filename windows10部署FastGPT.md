@@ -11,7 +11,11 @@
   export https_proxy="http://${host_ip}:10809"
   export no_proxy="localhost,127.0.0.1,*.local"
   ```
-- docker代理（每次需要重新运行）
+- 关闭docker服务
+  ```
+  docker-compose down
+  ```
+- docker代理（每次代理都需要重新运行）
   ```
   #!/bin/bash
   

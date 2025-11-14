@@ -73,7 +73,23 @@
   ```
   flutter doctor --android-licenses
   ```
-- END
+- 最终检查
   ```
   flutter doctor
+  ```
+- Java Gradle 网络代理，%USERPROFILE%/.gradle下新建gradle.properties文件，内容如下：
+  ```
+  # ===================================================
+  # == Gradle 全局代理配置
+  # ===================================================
+  
+  # --- HTTP 代理 ---
+  systemProp.http.proxyHost=127.0.0.1
+  systemProp.http.proxyPort=10808
+  systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
+  
+  # --- HTTPS 代理 ---
+  systemProp.https.proxyHost=127.0.0.1
+  systemProp.https.proxyPort=10809
+  systemProp.https.nonProxyHosts=*.nonproxyrepos.com|localhost
   ```

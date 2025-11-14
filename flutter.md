@@ -96,7 +96,7 @@
   ```
   flutter config --android-sdk "E:\Codes\Android\dev\android_sdk"
   ```
-- 安装 Android SDK 组件，flutter可能会要求特定版本的Android SDK和build-tools，Android SDK一般不管，build-tools再下载一次需要版本即可（版本共存）
+- 安装 Android SDK 组件，flutter可能会要求特定版本的Android SDK和build-tools，Android SDK一般不管，build-tools再下载一次需要版本即可（版本共存），也可以不用管
   ```
   sdkmanager --sdk_root="E:\Codes\Android\dev\android_sdk" --install "platform-tools" "platforms;android-34" "build-tools;34.0.0"
   ```

@@ -1,10 +1,10 @@
 # 环境（绿色版本）
 ## JAVA
 - https://adoptium.net/temurin/releases/
-- Operating System: Windows
-  Architecture: x64
-  Package Type: JDK
-  Version: 17
+- Operating System: Windows  
+  Architecture: x64  
+  Package Type: JDK  
+  Version: 17  
 - 下载解压，不需要新建目录
 ## Android SDK
 - Flutter SDK for Windows (zip)，大约2GB

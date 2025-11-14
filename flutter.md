@@ -99,7 +99,7 @@
   ```
   taskkill /F /IM java.exe /T
   ```
-- NDK缺少 source.properties，删除ndk目录下所有文件
+- NDK（一套能让安卓系统编译和理解 C++ 代码的特殊工具）缺少 source.properties，删除ndk目录下所有文件
   ```
   E:\Codes\Android\dev\android_sdk\ndk
   ```

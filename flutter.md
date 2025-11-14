@@ -32,6 +32,7 @@
   rem !!! 重要: 如果你的网络需要代理，请去掉下面两行的 rem 并填入你的代理地址 !!!
   set "HTTP_PROXY=http://127.0.0.1:10808"
   set "HTTPS_PROXY=http://127.0.0.1:10809"
+  set "NO_PROXY=localhost,127.0.0.1"
   
   rem --- 1. 设置 Flutter SDK 的根目录 ---
   set "FLUTTER_ROOT=E:\Codes\Android\dev\flutter\flutter"

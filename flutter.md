@@ -93,3 +93,23 @@
   systemProp.https.proxyPort=10809
   systemProp.https.nonProxyHosts=*.nonproxyrepos.com|localhost
   ```
+# 常用命令
+## gradle
+- Gradle 锁文件问题
+  ```
+  taskkill /F /IM java.exe /T
+  ```
+- NDK缺少 source.properties，删除ndk目录下所有文件
+  ```
+  E:\Codes\Android\dev\android_sdk\ndk
+  ```
+## flutter
+- 构建
+  ```
+  flutter run
+  ```
+- 清理构建
+  ```
+  flutter clean
+  ```
+- 

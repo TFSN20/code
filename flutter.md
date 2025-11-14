@@ -93,7 +93,7 @@
   systemProp.https.proxyPort=10809
   systemProp.https.nonProxyHosts=*.nonproxyrepos.com|localhost
   ```
-# 常用命令
+# 常用命令和文件
 ## gradle
 - Gradle 锁文件问题
   ```
@@ -103,11 +103,16 @@
   ```
   E:\Codes\Android\dev\android_sdk\ndk
   ```
+- 编译时使用的build-tools版本：gradle会根据compileSdk版本，自动选择一个与之匹配的、推荐的 build-tools 版本
 ## flutter
 - 修改项目中Android SDK版本，项目名称/android/app/build.gradle.kts
   ```
-  compileSdk = 34
-  targetSdk = 34
+  compileSdk = 34 #编译时用的 SDK 版本
+  targetSdk = 34 #告诉系统你的 App 已经适配到了哪个版本
+  ```
+- 创建项目
+  ```
+  flutter create 项目名称
   ```
 - 构建
   ```

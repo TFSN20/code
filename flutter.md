@@ -103,6 +103,10 @@
   ```
   E:\Codes\Android\dev\android_sdk\ndk
   ```
+- 获取版本信息
+  ```
+  sdkmanager --sdk_root="E:\Codes\Android\dev\android_sdk" --list_installed
+  ```
 - 编译时使用的build-tools版本：gradle会根据compileSdk版本，自动选择一个与之匹配的、推荐的 build-tools 版本
 ## flutter
 - 修改项目中Android SDK版本，项目名称/android/app/build.gradle.kts

@@ -92,7 +92,7 @@
   echo.
   ```
 ## 其他配置
-- flutter doctor 找不到 Android SDK
+- flutter doctor 找不到 Android SDK，设置后需要重新启动编辑器如vscode
   ```
   flutter config --android-sdk "E:\Codes\Android\dev\android_sdk"
   ```
@@ -140,6 +140,10 @@
   ```
 - 编译时使用的build-tools版本：gradle会根据compileSdk版本，自动选择一个与之匹配的、推荐的 build-tools 版本
 ## flutter
+- flutter版本，dart语言版本
+  ```
+  flutter --version
+  ```
 - 修改项目中Android SDK版本，项目名称/android/app/build.gradle.kts
   ```
   compileSdk = 34 #编译时用的 SDK 版本

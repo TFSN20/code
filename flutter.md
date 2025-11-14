@@ -6,22 +6,22 @@
   Package Type: JDK  
   Version: 17  
 - 下载解压，不需要新建目录
-## Android SDK
+## Flutter SDK
 - Flutter SDK for Windows (zip)，大约2GB
 - 下载解压，不需要新建目录
-- 在cmdline-tools文件夹下新建latest文件夹，将android_sdk目录下所有文件移动到latest文件夹下，这是Flutter 和 Android Studio 的标准结构期望需要。
-## Flutter SDK
+## Android SDK
 - Android Studio 官网，下翻找到Command line tools only
 - 下载zip文件，需要新建目录（如android_sdk）
+- 在cmdline-tools文件夹下新建latest文件夹，将android_sdk目录下所有文件移动到latest文件夹下，这是Flutter 和 Android Studio 的标准结构期望需要。
 ## 临时环境变量配置脚本
 - start_dev.bat
   ```
   @echo off
   rem =================================================================
-  rem ==  Flutter 便携式开发环境启动脚本
+  rem ==  Flutter 便携式开发环境启动脚本 v3.1 (修复中文乱码)
   rem =================================================================
   
-  rem 切换终端的编码为 UTF-8
+  rem --- 修复中文乱码: 切换终端的编码为 UTF-8 ---
   chcp 65001 > nul
   
   echo.
@@ -43,7 +43,7 @@
   set "JAVA_HOME=E:\Codes\Android\dev\Temurin 17.0.17+10 - 20251031\jdk-17.0.17+10"
   
   rem --- 4. 将所有工具的 bin 目录添加到临时的 PATH 环境变量中 ---
-  set "PATH=%JAVA_HOME%\bin;%FLUTTER_ROOT%\bin;%ANDROID_SDK_ROOT%\cmdline-tools\bin;%PATH%"
+  set "PATH=%JAVA_HOME%\bin;%FLUTTER_ROOT%\bin;%ANDROID_SDK_ROOT%\cmdline-tools\latest\bin;%PATH%"
   
   echo =================================================================
   echo  环境已就绪!
@@ -57,8 +57,39 @@
   echo  正在启动 VS Code...
   echo =================================================================
   
-  rem 启动 VS Code，它会继承当前这个终端的环境变量；使用 start异步启动 不阻塞当前终端 /B在当前窗口中启动程序，而不是创建一个新窗口
+  rem --- 使用 start 命令异步启动 VS Code，不阻塞当前终端 /B 告诉 start 命令在 当前窗口 中启动程序，而不是创建一个新窗口。它常用于启动控制台程序而不创建新窗口---
   start /B "" code .
+  
+  echo.
+  echo 正在检查flutter默认Android SDK版本号...
+  echo.
+  
+  rem --- 2. 构造配置文件的完整路径 ---
+  set "CONFIG_FILE=%FLUTTER_ROOT%\packages\flutter_tools\lib\src\android\gradle_utils.dart"
+  
+  echo  正在分析配置文件:
+  echo  %CONFIG_FILE%
+  echo.
+  
+  rem --- 3. 检查文件是否存在 ---
+  if not exist "%CONFIG_FILE%" (
+      echo  [错误!] 找不到配置文件!
+      echo  请检查上面的 FLUTTER_ROOT 路径是否正确。
+      goto :eof
+  )
+  
+  echo  ------------------- 侦察结果 --------------------
+  echo.
+  
+  rem --- 4. 使用 findstr 命令查找并显示关键行 ---
+  findstr "compileSdk" "%CONFIG_FILE%"
+  findstr "targetSdk" "%CONFIG_FILE%"
+  
+  echo.
+  echo  ---------------------------------------------------
+  echo.
+  echo  报告完毕! 你现在可以根据上面的版本号去下载对应的 SDK 了。
+  echo.
   ```
 ## 其他配置
 - flutter doctor 找不到 Android SDK

@@ -8,7 +8,7 @@
 - 下载解压，不需要新建目录
 ## Android SDK
 - Flutter SDK for Windows (zip)，大约2GB
-- 下载解压，不需要新建目录
+- 下载解压，不需要新建目录，如果
 ## Flutter SDK
 - Android Studio 官网，下翻找到Command line tools only
 - 下载zip文件，需要新建目录（如android_sdk）

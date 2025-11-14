@@ -104,6 +104,11 @@
   E:\Codes\Android\dev\android_sdk\ndk
   ```
 ## flutter
+- 修改项目中Android SDK版本，项目名称/android/app/build.gradle.kts
+  ```
+  compileSdk = 34
+  targetSdk = 34
+  ```
 - 构建
   ```
   flutter run

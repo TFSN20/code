@@ -168,6 +168,10 @@
   ```
   adb devices
   ```
+- 进入shell
+  ```
+  adb shell
+  ```
 - 查看APP文件存储位置和大小
   ```
   # 1. 连接到手机
@@ -185,4 +189,12 @@
   # 5. 退出
   exit
   exit
+  ```
+- 查看当前显示的Activity
+  ```
+  dumpsys activity | grep "mCurrentFocus"
+  ```
+- 查看APP正在运行的服务
+  ```
+  dumpsys activity services com.example.build_tester
   ```

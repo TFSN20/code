@@ -163,6 +163,10 @@
   flutter clean
   ```
 - 及时在手机上确认安装
+- 修改pubspec.yaml包后
+  ```
+  flutter pub get
+  ```
 ## adb
 - 查看设备
   ```

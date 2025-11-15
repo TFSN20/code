@@ -43,8 +43,8 @@
   rem --- 3. 设置 Java 开发工具包 (JDK) ---
   set "JAVA_HOME=E:\Codes\Android\dev\Temurin 17.0.17+10 - 20251031\jdk-17.0.17+10"
   
-  rem --- 4. 将所有工具的 bin 目录添加到临时的 PATH 环境变量中 ---
-  set "PATH=%JAVA_HOME%\bin;%FLUTTER_ROOT%\bin;%ANDROID_SDK_ROOT%\cmdline-tools\latest\bin;%PATH%"
+  rem --- 4. 将所有工具的 bin 目录添加到临时的 PATH 环境变量中 adb也添加---
+  set "PATH=%JAVA_HOME%\bin;%FLUTTER_ROOT%\bin;%ANDROID_SDK_ROOT%\platform-tools;%ANDROID_SDK_ROOT%\cmdline-tools\latest\bin;%PATH%"
   
   echo =================================================================
   echo  环境已就绪!

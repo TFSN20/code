@@ -202,3 +202,5 @@
   ```
   dumpsys activity services com.example.build_tester
   ```
+## 开发APP记录
+- Flutter 只在 Debug 模式下会自动添加网络权限android.permission.INTERNET，以保证开发体验的顺畅

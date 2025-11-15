@@ -154,7 +154,7 @@
   ```
   flutter create 项目名称
   ```
-- 构建
+- 构建（会先执行flutter pub get）
   ```
   flutter run
   ```

@@ -118,12 +118,12 @@
   # --- HTTP 代理 ---
   systemProp.http.proxyHost=127.0.0.1
   systemProp.http.proxyPort=10808
-  systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
+  systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost|127.0.0.1
   
   # --- HTTPS 代理 ---
   systemProp.https.proxyHost=127.0.0.1
   systemProp.https.proxyPort=10809
-  systemProp.https.nonProxyHosts=*.nonproxyrepos.com|localhost
+  systemProp.https.nonProxyHosts=*.nonproxyrepos.com|localhost|127.0.0.1
   ```
 # 常用命令和文件
 ## gradle
@@ -163,3 +163,26 @@
   flutter clean
   ```
 - 及时在手机上确认安装
+## adb
+- 查看设备
+  ```
+  adb devices
+  ```
+- 查看APP文件存储位置和大小
+  ```
+  # 1. 连接到手机
+  adb shell
+  
+  # 2. 切换到你的 App 身份 (关键一步)
+  run-as com.example.build_tester
+  
+  # 3. 查看所有目录的大小
+  du -sh *
+  
+  # 4. 查看 cache 目录里的内容
+  ls -la cache
+  
+  # 5. 退出
+  exit
+  exit
+  ```

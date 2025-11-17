@@ -77,6 +77,14 @@
   ```
   nano xxx.txt
   ```
+- 代理全局
+  ```
+  export host_ip=$(ip route | grep default | awk '{print $3}')
+  export http_proxy="http://${host_ip}:10808"
+  export https_proxy="http://${host_ip}:10808"
+  export all_proxy="socks5:/${host_ip}:10808"
+  export no_proxy="localhost,127.0.0.1,*.local"
+  ```
   
   
 # 常见问题

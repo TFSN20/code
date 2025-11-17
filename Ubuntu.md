@@ -85,7 +85,7 @@
   export all_proxy="socks5:/${host_ip}:10808"
   export no_proxy="localhost,127.0.0.1,*.local"
   ```
-- 禁止dns自动生成
+- 禁止dns自动生成 
   ```
   nano /etc/wsl.conf
   ```
@@ -94,6 +94,13 @@
   generateResolvConf = false
   [boot]
   systemd=true
+  ```
+  dns修改:
+  ```
+  nano /etc/resolv.conf
+  ```
+  nameserver 223.5.5.5
+  nameserver 180.76.76.76
   ```
   
   

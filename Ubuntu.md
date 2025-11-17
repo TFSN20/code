@@ -85,6 +85,16 @@
   export all_proxy="socks5:/${host_ip}:10808"
   export no_proxy="localhost,127.0.0.1,*.local"
   ```
+- 禁止dns自动生成
+  ```
+  nano /etc/wsl.conf
+  ```
+  ```
+  [network]
+  generateResolvConf = false
+  [boot]
+  systemd=true
+  ```
   
   
 # 常见问题

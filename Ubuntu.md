@@ -103,6 +103,12 @@
   nameserver 223.5.5.5
   nameserver 180.76.76.76
   ```
+- 取消代理
+  ```
+  unset http_proxy
+  unset https_proxy
+  unset all_proxy
+  ```
   
   
 # 常见问题

@@ -5,6 +5,17 @@ pip install ase
 pip install mace-torch
 pip install chgnet
 ```
+### wsl2 Ubuntu
+- 临时python3.12.10
+  ```
+  python3 --version
+  alias python3='python3.12'
+  python3 --version
+  # python3 -m venv ~/calc_env
+  source ~/calc_env/bin/activate
+  pip install torch --index-url https://download.pytorch.org/whl/cpu
+  ```
+- 
 ## 文档
 ### ase
 - https://ase-lib.org/

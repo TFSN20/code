@@ -14,6 +14,8 @@ pip install chgnet
   # python3 -m venv ~/calc_env
   source ~/calc_env/bin/activate
   pip install torch --index-url https://download.pytorch.org/whl/cpu
+  pip install torch-ema
+  pip install torchmetrics
   ```
 - 
 ## 文档

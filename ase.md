@@ -18,3 +18,4 @@ pip install chgnet
 - 注意周期性体系的坐标转换
 - 注意设置真空层
 - 注意绝对数值只有在同一模型下才有意义
+- 注意尽量使用大模型，专用模型，而不是多头模型（'matpes_r2scan', 'mp_pbe_refit_add', 'spice_wB97M', 'oc20_usemppbe', 'omol', 'omat_pbe'）

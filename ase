@@ -1,7 +1,0 @@
-## 环境
-### ase mace chgnet
-```
-pip install ase
-pip install mace-torch
-pip install chgnet
-```

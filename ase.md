@@ -11,6 +11,8 @@ pip install chgnet
 ### mace
 - https://github.com/ACEsuit/mace
 - 模型：https://github.com/ACEsuit/mace-foundations
+### chgnet
+- https://github.com/CederGroupHub/chgnet
 ## 模型选择
 ### 1. 无机晶体与材料科学 (Inorganic Materials)
 

@@ -17,7 +17,12 @@ pip install chgnet
   pip install torch-ema
   pip install torchmetrics
   ```
-- 
+  ```
+  pip install ase
+  pip install mace-torch
+  pip install chgnet
+  pip install gpaw
+  ```
 ## 文档
 ### ase
 - https://ase-lib.org/

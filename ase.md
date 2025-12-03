@@ -125,7 +125,7 @@ pip install chgnet
 这是材料计算的最底层，也是最根本的原理，被称为“第一性原理”（First Principles / Ab initio），意味着不需要经验参数，仅需原子序数和晶体结构即可计算。
 
 *   **核心方程：** **薛定谔方程 (Schrödinger Equation)**  
-    $$\hat{H}\Psi = E\Psi$$
+    $$\hat{H}\Psi = E\Psi$$  
     其中 $\hat{H}$ 是哈密顿算符（包含动能和势能）， $\Psi$ 是波函数，E是能量。
 *   **计算困境与解决：** 多电子体系的薛定谔方程极其复杂，无法解析求解。
 *   **主流方法：密度泛函理论 (DFT, Density Functional Theory)**
@@ -137,7 +137,7 @@ pip install chgnet
 在这个尺度下，我们不再关注电子的云状分布，而是将原子视为“球体”，关注原子核的位置和动量。
 
 *   **核心方程：** **牛顿运动定律**  
-    $$F = ma = -\nabla V(r)$$
+    $$F = ma = -\nabla V(r)$$  
     力 $F$ 是势能面 $V(r)$ 的梯度。
 *   **核心难点：势函数 (Potential Energy Surface)**
     如何描述原子间的相互作用力是核心。

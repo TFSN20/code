@@ -6,6 +6,7 @@ pip install mace-torch
 pip install chgnet
 ```
 ### wsl2 Ubuntu
+$\hat{H}_0$
 - 临时python3.12.10
   ```
   python3 --version

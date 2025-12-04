@@ -29,6 +29,7 @@ pip install chgnet
 ### mace
 - https://github.com/ACEsuit/mace
 - 模型：https://github.com/ACEsuit/mace-foundations
+- https://huggingface.co/mace-foundations/mace-mh-1
 ### chgnet
 - https://github.com/CederGroupHub/chgnet
 ### gpaw

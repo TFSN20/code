@@ -360,3 +360,175 @@ DFT 从1964年的一个数学定理，发展到今天成为物理、化学、材
 | 2013-2016 | 马丁·赫德-戈登组、施里姆 (M. Head-Gordon et al., S. Grimme et al.) | $\omega$ B97M+D3 泛函 (Range-Separated Hybrid, Meta-GGA with D3 Dispersion Correction) | 核心原理： 采用 $\omega$ B97M 的高精度 范围分离混合元 GGA (Hybrid Meta-GGA) 框架作为主体，并额外添加一个经验性/半经验性的 DFT-D3 色散修正。 $$\small E_{\text{DFT-D3}} = E_{\omega\text{B}97\text{M}} + E_{\text{disp}}(D3)$$ 底层细节： DFT-D3 修正项是基于原子间 $C_6/C_8$ 色散系数的对原子对势模型，以经验方式修正了主体泛函在长程相关性上的缺陷。这种方法比 $\omega$ B97M-V 中使用的 VV10 非定域相关项在计算上更高效。 | 它是 $\omega$ B97M 家族中最常用的范德华校正版本之一；被设计用于在保持 $\omega$ B97M 对热化学高精度的同时，可靠地计算所有类型的非共价相互作用。 | 过去/现阶段应用： 广泛应用于计算生物分子体系、分子晶体、吸附现象、以及涉及大量非共价相互作用的复杂体系的几何结构和相对能量。它提供了一种在精度上接近 $\text{CCSD(T)}$，但计算成本远低于 $\text{CCSD(T)}$ 的方法。 | 与 $\omega$ B97M-V 比较： $\omega$ B97M-V 将色散修正内置在相关泛函中；而 $\omega$ B97M+D3 是主体泛函加上外加校正。在许多情况下，两者都能提供相似的高精度，但 $\omega$ B97M+D3 的计算通常略微更快。 |
 | 2016 | 马丁·赫德-戈登组 (M. Head-Gordon et al.) | $\omega$ B97M-VV10 泛函 (Range-Separated Meta-GGA with VV10 Correlation) | 核心原理： 结合了 $\omega$ B97 家族的范围分离、Meta-GGA 框架 (包含动能密度 $\tau$) 和 VV10 非定域相关修正。底层细节： 交换-相关泛函 $E_{\text{XC}}$ 经过组合优化，精确拟合大量化学数据集。VV10 项（由 Vydrov 和 Van Voorhis 提出）是一种非定域相关 (NLC) 泛函，它内嵌在总能量表达式中，以物理方式描述长程色散力（范德华力）。 | 它是现代 DFT 中追求化学精度的最高级别泛函之一；尤其擅长处理需要精确平衡共价键、热化学和非共价相互作用的复杂体系。 | 过去/现阶段应用： 用于对非共价作用主导的复合体（如 $\pi-\pi$ 堆叠、氢键网络）、异构化能、反应势垒和高精度热力学数据进行基准计算。它被认为是接近 $\text{CCSD(T)}$ 精度的最优 DFT 泛函之一。 | 与 $\omega$ B97M+D3 比较： $\omega$ B97M-VV10 将 vdW 修正项内嵌在相关泛函中，比外加的 D3 修正在理论上更具普适性和优雅性。 计算成本： 由于引入了 Meta-GGA 和非定域相关项，计算成本高于常规的 GGA 或 Hybrid 泛函（如 B3LYP）。 |
 | 2020 | Bartók 等 (Á. T. Bartók et al.) | 修订的 SCAN 泛函 (Restored and Revised SCAN, r2SCAN) | 核心原理： 属于 Meta-GGA 家族，依赖于电子密度 ($\rho$)、梯度 ($\nabla\rho$) 和**动能密度** ($\tau$)。底层细节： r2SCAN 的设计是为了修正原始 SCAN 泛函在计算过程中对数值积分的敏感性和收敛性问题，同时保留 SCAN 满足 17 个已知理论约束的优势。 | 它在数学上对 SCAN 的交换和相关部分进行了更平滑的函数形式修订。它是 Meta-GGA 泛函中最先进、最受关注的版本之一；是纯 DFT 泛函（不含 HF 交换）中追求普适高精度的重要尝试。 | --- | --- |
+
+## GGA大全
+DFT雅各布天梯（Jacob's Ladder）的**第二阶梯（Rung 2）**被称为**广义梯度近似（GGA, Generalized Gradient Approximation）**泛函。
+
+根据文献和工业生产中（如VASP, CP2K, Quantum ESPRESSO, ORCA等软件）最常用的GGA泛函，以下是Libxc中约定俗成的搭配全称、分类及特性总结：
+
+### 常用GGA泛函列表
+
+| 通用名称 | Libxc 约定搭配 (Exchange + Correlation) | 全称 (主要作者/年份) | 经验性 | 局域性 | 修正性 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **PBE** | `GGA_X_PBE` + `GGA_C_PBE` | Perdew-Burke-Ernzerhof (1996) | 非经验 | 半局域 | 无 |
+| **BLYP** | `GGA_X_B88` + `GGA_C_LYP` | Becke (1988) Exchange + Lee-Yang-Parr (1988) Correlation | 经验性 | 半局域 | 无 |
+| **BP86** | `GGA_X_B88` + `GGA_C_P86` | Becke (1988) Exchange + Perdew (1986) Correlation | 经验性 | 半局域 | 无 |
+| **PW91** | `GGA_X_PW91` + `GGA_C_PW91` | Perdew-Wang (1991) | 非经验 | 半局域 | 无 |
+| **PBEsol** | `GGA_X_PBE_SOL` + `GGA_C_PBE_SOL` | PBE for Solids (Perdew et al. 2008) | 非经验 | 半局域 | 无 |
+| **RPBE** | `GGA_X_RPBE` + `GGA_C_PBE` | Revised PBE (Hammer-Hansen-Nørskov 1999) | 非经验 | 半局域 | 无 |
+| **revPBE** | `GGA_X_PBE_R` + `GGA_C_PBE` | Revised PBE (Zhang-Yang 1998) | 经验性* | 半局域 | 无 |
+| **B97-D** | `GGA_XC_B97_D` | Becke 97 (Grimme parametrization 2006) | 经验性 | 半局域 | 含色散修正 (D2) |
+| **AM05** | `GGA_X_AM05` + `GGA_C_AM05` | Armiento-Mattsson (2005) | 非经验 | 半局域 | 无 |
+
+### 说明
+1.  **Libxc 命名规则**：Libxc 通常将泛函拆分为交换（Exchange, `_X_`）和关联（Correlation, `_C_`）两部分。对于无法拆分或作为一个整体参数化的泛函（如 B97-D），使用 `_XC_` 前缀。
+2.  **经验性/非经验性**：
+    *   **非经验 (Non-empirical)**：基于物理约束条件推导，不依赖实验数据拟合（如 PBE, PW91, PBEsol, RPBE）。
+    *   **经验性 (Empirical)**：包含拟合实验数据（如原子化能、稀有气体数据）的参数（如 BLYP, BP86 中的 B88 交换部分，revPBE 拟合了 $\kappa$ 参数，B97-D 高度参数化）。
+3.  **局域性**：所有 Rung 2 GGA 泛函本质上都是**半局域（Semi-local）**的，因为它们仅依赖于电子密度 $\rho(\mathbf{r})$ 及其梯度 $\nabla \rho(\mathbf{r})$。
+    *   *注*：B97-D 虽然基础形式是 GGA，但其包含的经验色散校正（Dispersion Correction）引入了长程相互作用描述，不过在泛函分类中通常仍归类为带修正的 GGA。
+4.  **修正性**：大部分标准 GGA（如 PBE, BLYP）本身不包含长程范德华力（色散）描述，常需外挂 DFT-D3, DFT-D4 或 VV10 等修正（例如写作 PBE-D3）。B97-D 是特例，其定义中已内含 D2 色散修正。
+
+DFT雅各布天梯的**第三阶梯（Rung 3）**被称为**Meta-GGA（Meta-Generalized Gradient Approximation，元广义梯度近似）**泛函。这一阶梯引入了动能密度 $\tau$（或拉普拉斯算符 $\nabla^2 \rho$），属于**半局域（Semi-local）**泛函。
+
+以下是文献和工业生产中（如VASP, Gaussian, CP2K等）最常用的Meta-GGA泛函及其Libxc搭配：
+
+### 常用Meta-GGA泛函列表
+
+| 通用名称 | Libxc 约定搭配 (Exchange + Correlation) | 全称 (主要作者/年份) | 经验性 | 局域性 | 修正性 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **SCAN** | `MGGA_X_SCAN` + `MGGA_C_SCAN` | Strongly Constrained and Appropriately Normed (Sun et al. 2015) | 非经验 | 半局域 | 无 |
+| **r2SCAN** | `MGGA_X_R2SCAN` + `MGGA_C_R2SCAN` | Regularized-Restored SCAN (Furness et al. 2020) | 非经验 | 半局域 | 无 (数值稳定性优于SCAN) |
+| **TPSS** | `MGGA_X_TPSS` + `MGGA_C_TPSS` | Tao-Perdew-Staroverov-Scuseria (2003) | 非经验 | 半局域 | 无 |
+| **revTPSS** | `MGGA_X_REVTPSS` + `MGGA_C_REVTPSS` | Revised TPSS (Perdew et al. 2009) | 非经验 | 半局域 | 无 |
+| **M06-L** | `MGGA_X_M06_L` + `MGGA_C_M06_L` | Minnesota 06 Local (Zhao-Truhlar 2006) | 经验性 | 半局域 | 隐式含中程色散 (拟合) |
+| **PKZB** | `MGGA_X_PKZB` + `MGGA_C_PKZB` | Perdew-Kurth-Zupan-Becke (1999) | 非经验 | 半局域 | 无 (TPSS的前身) |
+| **B97M-V** | `MGGA_XC_B97M_V` | Becke 97 Meta with VV10 (Mardirossian-Head-Gordon 2015) | 经验性 | **非局域*** | 含非局域 VV10 色散修正 |
+
+### 说明
+1.  **Libxc 命名规则**：前缀为 `MGGA_`。大多数常用的 Meta-GGA 泛函在 Libxc 中也是分为交换（`_X_`）和关联（`_C_`）两部分调用，但像 B97M-V 这种高度参数化且设计为整体的泛函常以 `_XC_` 形式存在。
+2.  **经验性/非经验性**：
+    *   **非经验 (Non-empirical)**：SCAN 和 TPSS 系列基于满足所有已知的精确物理约束条件构建，不依赖分子数据库拟合。
+    *   **经验性 (Empirical)**：M06-L 是典型的明尼苏达系列泛函，通过拟合大量化学数据库及其参数化，虽然在过渡金属化学中表现优异，但依赖参数拟合。
+3.  **局域性**：
+    *   标准 Rung 3 泛函（如 SCAN, TPSS, M06-L）依赖 $\tau(\mathbf{r})$，仍属于**半局域**近似。
+    *   **特例**：B97M-V 虽然基础形式是 Meta-GGA，但设计中强制包含了非局域关联（VV10），严格来说跨越了 Rung 3 和 Rung 4 之间的界限，但在 Libxc 分类及部分文献讨论中常作为现代高精度 Meta-GGA 的代表提及。
+4.  **修正性**：
+    *   **r2SCAN**：是 SCAN 的正则化版本，主要修正了 SCAN 在数值积分网格上的不稳定性（Numerical Noise），目前在 VASP 等平面波软件中逐渐取代 SCAN。
+    *   **色散修正**：SCAN 和 TPSS 自身不包含长程范德华力，常需搭配 D3 或 D4 修正（如 r2SCAN-D4）。M06-L 通过拟合包含了部分中程相互作用，但长程仍不准确。
+
+DFT雅各布天梯的**第四阶梯（Rung 4）**被称为**杂化泛函（Hybrid Functionals）**。这一阶梯在DFT交换关联项中引入了部分**精确交换（Exact Exchange / Hartree-Fock Exchange）**，属于**非局域（Non-local）**泛函。
+
+杂化泛函在Libxc中通常作为**整体（Monolithic）**定义，因为HF交换的混合比例是泛函定义的固有部分，一般不需要用户分别指定交换和关联部分（但在某些代码中也可以手动混合）。
+
+以下是文献和工业生产中（如Gaussian, VASP, ORCA, Q-Chem等）最常用的杂化泛函及其Libxc约定名称：
+
+### 常用杂化泛函列表 (Hybrid Functionals)
+
+| 通用名称 | Libxc 约定名称 (整体) | 全称 (主要作者/年份) | 经验性 | 局域性分类 | 修正性/特性 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **B3LYP** | `HYB_GGA_XC_B3LYP` | Becke 3-parameter, Lee-Yang-Parr (1993/1994) | 经验性 | 全局杂化 | 有机化学标准，含3个拟合参数 |
+| **PBE0** | `HYB_GGA_XC_PBEH` | PBE Hybrid (Adamo-Barone 1999) | 非经验 | 全局杂化 | 25% HF 混合，物理约束构建 |
+| **HSE06** | `HYB_GGA_XC_HSE06` | Heyd-Scuseria-Ernzerhof (2006) | 非经验* | **屏蔽杂化** | 固态带隙标准，仅短程含HF交换 (Screened) |
+| **M06-2X** | `HYB_MGGA_XC_M06_2X` | Minnesota 06 2x HF (Zhao-Truhlar 2008) | 经验性 | 全局**Meta**杂化 | 54% HF，优于主族热化学/动力学/弱相互作用 |
+| **TPSSh** | `HYB_MGGA_XC_TPSSH` | TPSS Hybrid (Staroverov et al. 2003) | 非经验 | 全局**Meta**杂化 | 10% HF，TPSS的杂化版本 |
+| **ωB97X-D**| `HYB_GGA_XC_WB97X_D` | ωB97X with Dispersion (Chai-Head-Gordon 2008) | 经验性 | **区间分离**杂化 | 含长程修正(LC) + 经验色散(D2) |
+| **CAM-B3LYP**| `HYB_GGA_XC_CAM_B3LYP`| Coulomb-Attenuating Method B3LYP (Yanai 2004) | 经验性 | **区间分离**杂化 | 修正了B3LYP的长程电荷转移激发问题 |
+| **SCAN0** | `HYB_MGGA_XC_SCAN0` | SCAN Hybrid (Hui-Chai 2016) | 非经验 | 全局**Meta**杂化 | 25% HF，SCAN的杂化版本 (注: r2SCAN0 也渐流行) |
+
+### 说明
+1.  **Libxc 命名规则**：
+    *   杂化泛函的 ID 前缀通常为 `HYB_GGA_XC_` 或 `HYB_MGGA_XC_`。
+    *   **重要提示**：在 Libxc 中，杂化泛函是一个整体 ID（例如 ID 402 对应 B3LYP）。调用时，代码会自动处理 HF 交换积分的混合比例（如 B3LYP 的 20%，PBE0 的 25%）。这与 Rung 2/3 常常拆分 Exchange/Correlation 的做法不同。
+    *   **PBE0 的名称**：在 Libxc 中约定俗成的名称是 `PBEH` (PBE Hybrid)，对应通用名称 PBE0。
+    *   **B3LYP 的定义**：Libxc 的 `HYB_GGA_XC_B3LYP` 对应最通用的 Gaussian 软件定义（使用 VWN 1-RPA 版本的局域关联）。
+
+2.  **经验性/非经验性**：
+    *   **经验性 (Empirical)**：如 B3LYP, M06-2X, ωB97X-D。参数是通过拟合特定的热化学或动力学数据库得到的。
+    *   **非经验 (Non-empirical)**：如 PBE0, TPSSh, SCAN0。混合参数（如 0.25）是基于微扰理论或物理常数推导的，而非数据拟合。HSE06 属于物理模型驱动，虽然屏蔽参数 $\omega$ 有选定过程，但通常归类为非经验或物理导向。
+
+3.  **局域性与分类**：
+    *   **非局域 (Non-local)**：所有 Rung 4 泛函因包含 Hartree-Fock 交换积分，在数学上都是非局域的。
+    *   **全局杂化 (Global Hybrid)**：HF 交换比例在全空间是常数（如 B3LYP, PBE0）。
+    *   **区间分离杂化 (Range-Separated Hybrid, RSH)**：将电子相互作用分为短程和长程，HF 比例随距离变化。
+        *   **长程修正 (Long-range Corrected, LC)**：如 CAM-B3LYP, ωB97X-D，主要用于解决电荷转移（CT）和里德堡态问题。
+        *   **屏蔽杂化 (Screened Hybrid)**：如 HSE06，仅在短程保留 HF 交换，长程使用纯 DFT，计算固体时极大降低计算量。
+
+4.  **修正性**：
+    *   **色散修正**：ωB97X-D 自身集成了经验色散（-D）。其他如 B3LYP, PBE0 通常需要外挂 D3(BJ) 或 D4 修正（例如写作 B3LYP-D3(BJ)）。
+    *   **M06-2X**：通过高度参数化，内部隐式包含了一些中程色散作用，但对极长程作用仍有限。
+
+DFT雅各布天梯的**第五阶梯（Rung 5）**被称为**双杂化泛函（Double Hybrid Functionals）**或包含**虚轨道（Virtual Orbitals）**信息的泛函（如RPA）。这一阶梯不仅引入了精确交换（HF Exchange），还引入了基于微扰理论（如MP2）或随机相位近似（RPA）的**非局域关联**。
+
+这是目前DFT应用的最高阶梯，属于**完全非局域（Fully Non-local）**泛函。
+
+以下是文献和工业生产中（如ORCA, Gaussian, Q-Chem等）最常用的双杂化泛函及其Libxc搭配：
+
+### 常用双杂化泛函列表 (Double Hybrids)
+
+| 通用名称 | Libxc 约定名称 (整体) | 全称 (主要作者/年份) | 经验性 | 局域性 | 修正性/特性 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **B2PLYP** | `HYB_GGA_XC_B2PLYP` | Becke 2-parameter, Lee-Yang-Parr with MP2 (Grimme 2006) | 经验性 | 完全非局域 | 首个广泛使用的双杂化，含MP2关联 |
+| **mPW2-PLYP** | `HYB_GGA_XC_MPW2PLYP` | Modified PW91 2-parameter (Schwabe-Grimme 2008) | 经验性 | 完全非局域 | 改进了B2PLYP的弱相互作用描述 |
+| **B2GP-PLYP** | `HYB_GGA_XC_B2GP_PLYP` | B2 General Purpose (Karton-Martin-Radom 2008) | 经验性 | 完全非局域 | 针对热化学数据重新参数化 (General Purpose) |
+| **DSD-PBEP86**| `HYB_GGA_XC_DSD_PBEP86`| Dispersion Spin-component-scaled Double-hybrid (Kozuch-Martin 2011) | 经验性 | 完全非局域 | **DSD系列**：含自旋分量缩放(SCS)及色散修正 |
+| **ωB97X-2** | `HYB_GGA_XC_WB97X_2` | ωB97X Double Hybrid (Chai-Head-Gordon 2009) | 经验性 | **区间分离**非局域 | 结合了长程修正(LC)与双杂化，减少自相互作用误差 |
+| **XYG3** | `HYB_GGA_XC_XYG3` | X3LYP-based Doubly Hybrid (Zhang-Xu-Goddard 2009) | 经验性 | 完全非局域 | 基于绝热连接形式构建，拟合G3热化学数据 |
+| **PBE-QIDH** | `HYB_GGA_XC_PBE_QIDH` | PBE Quadratic Integrand Double Hybrid (Bremond et al. 2014) | 非经验* | 完全非局域 | 尝试减少经验参数，基于物理模型构建的双杂化 |
+
+### 说明
+1.  **Libxc 命名规则与实现机制**：
+    *   **特殊性**：Rung 5 泛函依赖虚轨道（未占据轨道），计算量通常为 $O(N^5)$。Libxc 本身**不计算**微扰部分（MP2/PT2）的能量，它只提供泛函定义的**混合系数**（Scaling factors for HF, DFT Exchange, DFT Correlation, MP2 Correlation）。
+    *   宿主软件（如 ORCA, CP2K）会调用 Libxc 获取这些系数，然后自行计算 MP2 积分并进行混合。
+    *   前缀通常仍为 `HYB_GGA_XC_`，因为其基础仍是杂化泛函架构。
+
+2.  **经验性/非经验性**：
+    *   **经验性 (Empirical)**：绝大多数双杂化泛函（B2PLYP, DSD系列, XYG3）都是高度经验性的。它们通常包含两个或更多个经验参数（$c_{HF}$, $c_{MP2}$ 等），通过拟合大型热化学数据库（如 G3/99, GMTKN）得到。
+    *   **非经验 (Non-empirical)**：严格来说，Rung 5 中最著名的非经验方法是 **RPA (Random Phase Approximation)**。但在 Libxc 中，RPA 通常不作为一个单一的泛函 ID 存在，而是通过组合 `PBE` 轨道 + `EXX` + `RPA Correlation` 的方法实现。PBE-QIDH 是少数尝试走非经验路线的双杂化泛函之一。
+
+3.  **局域性**：
+    *   **完全非局域 (Fully Non-local)**：不仅交换项是非局域的（如 Rung 4），关联项也是非局域的（依赖占据和虚轨道的所有双电子积分）。
+
+4.  **修正性与高级特性**：
+    *   **DSD (Dispersion-corrected, Spin-component-scaled)**：这是现代双杂化泛函的黄金标准（如 DSD-PBEP86）。它引入了两个主要修正：
+        1.  **D (Dispersion)**：明确包含色散校正（如 D3 或 D4）。
+        2.  **S (Spin-component-scaled)**：对 MP2 关联能中的“自旋平行”和“自旋反平行”成分赋予不同的权重，以提升精度。
+    *   **应用场景**：Rung 5 泛函通常用于追求化学精度（Chemical Accuracy, ~1 kcal/mol）的计算，精度通常优于所有低阶梯泛函，但计算成本极高。
+
+除了Rung 2-5的常见泛函外，Libxc中还包含**Rung 1（LDA）**基础泛函，以及**特定领域的专用泛函**（如固体物理中的vdW-DF系列交换项、现代高性能组合泛函）。
+
+以下是补充的Libxc中常被使用的搭配泛函：
+
+### 1. Rung 1：局域密度近似 (LDA)
+这是所有DFT泛函的基础，常用于固体物理能带计算或作为高阶泛函的组成部分（如PBE的关联部分基于PW92）。
+
+| 通用名称 | Libxc 约定搭配 (Exchange + Correlation) | 全称 (主要作者/年份) | 经验性 | 局域性 | 修正性 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **SVWN5** | `LDA_X` + `LDA_C_VWN` | Slater Exchange + Vosko-Wilk-Nusair (1980) fit 5 | 非经验 | **完全局域** | 无 (均匀电子气模型) |
+| **PW92** | `LDA_X` + `LDA_C_PW` | Slater Exchange + Perdew-Wang (1992) | 非经验 | **完全局域** | 无 (比VWN更准确的HEG拟合) |
+| **SVWN3** | `LDA_X` + `LDA_C_VWN_3` | Slater + VWN fit 3 | 非经验 | **完全局域** | 无 (Gaussian软件中B3LYP定义的各分量) |
+
+### 2. 固体物理专用：vdW-DF 系列交换泛函
+在VASP、Quantum ESPRESSO等软件中，计算层状材料或吸附时，常使用特定的**GGA交换泛函**搭配非局域关联核（Non-local Kernel）。Libxc提供了这些特定的交换部分。
+
+| 通用名称 | Libxc 约定搭配 (Exchange Only) | 全称 (主要作者/年份) | 经验性 | 局域性 | 搭配说明 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **optB88-vdW**| `GGA_X_OPTB88_VDW` | Klimeš-Bowler-Michaelides (2010) | 经验性 | 半局域 | 需搭配 `LDA_C_VWN` + vdW-DF1 Kernel |
+| **optB86b-vdW**| `GGA_X_OPTB86B_VDW`| Klimeš-Bowler-Michaelides (2011) | 经验性 | 半局域 | 需搭配 `LDA_C_VWN` + vdW-DF1 Kernel |
+| **cx-vdW** | `GGA_X_LV_RPW86` | Berland-Hyldgaard (2014) | 非经验 | 半局域 | 需搭配 vdW-DF1 Kernel (一致性交换) |
+| **C09-vdW** | `GGA_X_C09_X` | Cooper (2009) | 经验性 | 半局域 | 需搭配 vdW-DF1 Kernel |
+
+### 3. 现代高性能杂化泛函 (Advanced Hybrids)
+近年来Head-Gordon组和Truhlar组开发的顶级精度泛函，常用于高精度计算基准。
+
+| 通用名称 | Libxc 约定名称 (整体) | 全称 (主要作者/年份) | 经验性 | 局域性 | 修正性/特性 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **ωB97X-V** | `HYB_GGA_XC_WB97X_V` | ωB97X with VV10 (Mardirossian-Head-Gordon 2014) | 经验性 | **区间分离**杂化 | 内含非局域 VV10 色散 (比 -D3 更严谨) |
+| **ωB97M-V** | `HYB_MGGA_XC_WB97M_V`| ωB97 Meta with VV10 (Mardirossian-Head-Gordon 2016) | 经验性 | **区间分离**Meta杂化 | 现有泛函中综合精度最高的之一 |
+| **MN15** | `HYB_MGGA_XC_MN15` | Minnesota 15 (Yu-He-Truhlar 2016) | 经验性 | 全局Meta杂化 | 广谱精度，改善了多参考态问题的描述 |
+| **LRC-ωPBEh**| `HYB_GGA_XC_LRC_WPBEH`| Long-Range Corrected ωPBE (Rohrdanz et al. 2009) | 非经验*| **区间分离**杂化 | 常用作调优 $\omega$ 参数的模板 (Tuned-LC) |
+
+### 总结说明
+*   **LDA (Rung 1)**：是所有 DFT 计算的基石，虽然精度不如 GGA/Hybrid，但在 Libxc 中是 `LDA_C_PW` 等关联泛函被广泛调用作为高阶泛函的一部分。
+*   **vdW-DF 交换项**：在 Libxc 中，这些泛函通常只提供**交换能**部分（如 `GGA_X_OPTB88_VDW`），因为**非局域关联**（Kernel）通常涉及双重空间积分，由宿主代码（如 VASP, CP2K）直接处理，而不是由 Libxc 的单点核函数处理。
+*   **ωB97X-V / ωB97M-V**：代表了当前 DFT 发展的最高水平（组合了 RSH、Meta 和 VV10 非局域关联），在 Libxc 中作为整体封装，是追求极高精度的首选。

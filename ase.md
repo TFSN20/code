@@ -541,17 +541,15 @@ We provide a series of pretrained foundation models for various applications.
 
 | Model Name | Elements Covered | Training Dataset | Level of Theory | Target System | Model Size | GitHub Release | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| MACE-MP-0a           | 89               | MPTrj            | DFT (PBE+U)         | Materials         | small: mace_mp_0/2023-12-10-mace-128-L0_energy_epoch-249.model; medium: mace_mp_0/2023-12-03-mace-128-L1_epoch-199.model; large: mace_mp_0/2024-01-07-mace-128-L2_epoch-199.model | >=v0.3.6       | Initial release of foundation model.                               |
-| MACE-MP-0b        | 89               | MPTrj             | DFT (PBE+U)           | Materials            | models: mace_mp_0b/mace_agnesi_medium.model | >=v0.3.10      | Improve pair repulsion and correct isolated atoms. |
-| MACE-MP-0b2        | 89               | MPTrj             | DFT (PBE+U)           | Materials            | models: mace_mp_0b2/mace-medium-density-agnesi-stress.model | >=v0.3.9      | Improve stability at high pressure. |
-| MACE-MP-0b3        | 89               | MPTrj             | DFT (PBE+U)           | Materials            | models: mace_mp_0b3/mace-mp-0b3-medium.model | >=v0.3.9      | Fixed some phonons issues compared to b2. Improved high pressure stability and reference energies. |
-| MACE-MPA-0           | 89               | MPTrj + sAlex    | DFT (PBE+U)         | Materials         | medium-mpa-0: mace_mpa_0/mace-mpa-0-medium.model | >=v0.3.10      | Improved accuracy for materials, improved high pressure stability. |
-| MACE-OMAT-0          | 89               | OMAT             | DFT (PBE+U) VASP 54 | Materials         | medium-omat-0: mace_omat_0/mace-omat-0-medium.model | >=v0.3.10      |                                                                    |
-| MACE-OFF23           | 10               | SPICE v1         | DFT (wB97M+D3)      | Organic Chemistry | small: mace_off23/MACE-OFF23_small.model; medium: mace_off23/MACE-OFF23_medium.model; large: mace_off23/MACE-OFF23_large.model; medium: mace_off23/MACE-OFF24_medium.model | >=v0.3.6       | Initial release covering neutral organic chemistry.                |
-| MACE-MATPES-PBE-0    | 89               | MATPES-PBE       | DFT (PBE)           | Materials         | medium: mace_matpes_0/MACE-matpes-pbe-omat-ft.model | >=v0.3.10      | No +U correction.                                                  |
-| MACE-MATPES-r2SCAN-0 | 89               | MATPES-r2SCAN    | DFT (r2SCAN)        | Materials         | medium: mace_matpes_0/MACE-matpes-r2scan-omat-ft.model | >=v0.3.10      | Better functional for materials.                                   |
-| MACE-OMOL-0 | 89               | OMOL    | DFT (wB97M-VV10)        | Molecules/Transition metals/Cations         | large: mace_omol_0/MACE-omol-0-extra-large-1024.model | >=v0.3.14      | Charge/Spin embedding, very good molecular accuracy.                                   |
-| MACE-MH-0/1 | 89               | OMAT/OMOL/OC20/MATPES    | DFT (PBE/R2SCAN/wB97M-VV10)        | Inorganic crystals, molecules and surfaces. | mh-0: mace_mh_1/mace-mh-0.model; mh-1: mace_mh_1/mace-mh-1.model | >=v0.3.14      | Very good cross domain performance on surfaces/bulk/molecules.   |
+| MACE-MP-0a           | 89               | MPTrj            | DFT (PBE+U)         | Materials         | small; medium; large | >=v0.3.6       | Initial release of foundation model. |
+| MACE-MP-0b3        | 89               | MPTrj             | DFT (PBE+U)           | Materials            | medium | >=v0.3.9      | Improved high pressure stability and reference energies. |
+| MACE-MPA-0           | 89               | MPTrj + sAlex    | DFT (PBE+U)         | Materials         | medium | >=v0.3.10      | Improved accuracy for materials, improved high pressure stability. |
+| MACE-OMAT-0          | 89               | OMAT             | DFT (PBE+U) VASP 54 | Materials         | medium | >=v0.3.10      | MACE model trained on Omat dataset released by Meta AI. |
+| MACE-OFF23           | 10               | SPICE v1         | DFT (wB97M+D3)      | Organic Chemistry | small; medium; large | >=v0.3.6       | Initial release covering neutral organic chemistry. |
+| MACE-MATPES-PBE-0    | 89               | MATPES-PBE       | DFT (PBE)           | Materials         | medium: MACE-matpes-pbe-omat-ft.model | >=v0.3.10      | mace (omat-0) models finetuned on matpes dataset at r2scan and pbe level of theories. No +U correction. |
+| MACE-MATPES-r2SCAN-0 | 89               | MATPES-r2SCAN    | DFT (r2SCAN)        | Materials         | medium: MACE-matpes-r2scan-omat-ft.model | >=v0.3.10      | mace (omat-0) models finetuned on matpes dataset at r2scan and pbe level of theories. Better functional for materials. |
+| MACE-OMOL-0 | 89               | OMOL    | DFT (wB97M-VV10)        | Molecules/Transition metals/Cations         | large | >=v0.3.14      | MACE model trained on omol 100M with spin and charge embedding. Charge/Spin embedding, very good molecular accuracy. |
+| MACE-MH-0/1 | 89               | OMAT/OMOL/OC20/MATPES    | DFT (PBE/R2SCAN/wB97M-VV10)        | Inorganic crystals, molecules and surfaces. | mh-0; mh-1 | >=v0.3.14      |Series of multi-head models trained on OMAT, and finetuned on RGD1 (organic reactions), MATPES-R2SCAN, MPtraj, OMOL-neutral-subset, SPICE, OC20-2M and replay OMAT. Very good cross domain performance on surfaces/bulk/molecules. |
 
 The first generation of models are available in the MACE-MP-0.
 
@@ -565,11 +563,7 @@ We do not guarantee that the second generation models are better than the first 
 
 ### MACE-MP: Materials Project Force Fields
 
-We have collaborated with the Materials Project (MP) to train a universal MACE potential covering 89 elements on 1.6 M bulk crystals in the [MPTrj dataset](https://figshare.com/articles/dataset/23713842) selected from MP relaxation trajectories.
-
-> **!CAUTION**
->
-> The MACE-MP models are trained on MPTrj raw DFT energies from VASP outputs, and are not directly comparable to the MP's DFT energies or CHGNet's energies, which have been applied MP2020Compatibility corrections for some transition metal oxides, fluorides (GGA/GGA+U mixing corrections), and 14 anions species (anion corrections). For more details, please refer to the MP Documentation and MP2020Compatibility.yaml.
+We have collaborated with the Materials Project (MP) to train a universal MACE potential covering 89 elements on 1.6 M bulk crystals in the MPTrj dataset selected from MP relaxation trajectories.
 
 ### MACE-OFF: Transferable Organic Force Fields
 

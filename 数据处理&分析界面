@@ -1,0 +1,1500 @@
+1. 数据处理界面
+```
+import sys
+import os
+import time
+import traceback
+from pathlib import Path
+from datetime import datetime
+
+import polars as pl
+import polars.selectors as cs
+from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
+                               QHBoxLayout, QPushButton, QFileDialog, QTableWidget, 
+                               QTableWidgetItem, QSplitter, QPlainTextEdit, QLabel, 
+                               QMessageBox, QHeaderView, QCheckBox, QDialog, QGroupBox,
+                               QListWidget, QListWidgetItem, QProgressBar)
+from PySide6.QtCore import Qt, QThread, Signal, QObject
+
+# 配置 Polars 显示选项
+pl.Config.set_fmt_str_lengths(50)
+
+class DataLoader(QThread):
+    """多线程加载Excel文件，避免界面卡顿"""
+    progress = Signal(str)  # 发送日志
+    finished_one = Signal(str, object, tuple) # 文件名, DataFrame, 原始shape
+    all_finished = Signal()
+
+    def __init__(self, file_paths):
+        super().__init__()
+        self.file_paths = file_paths
+
+    def run(self):
+        for path in self.file_paths:
+            try:
+                p = Path(path)
+                filename = p.stem
+                self.progress.emit(f"正在读取: {filename} ...")
+                
+                # 使用 calamine 引擎极速读取
+                # read_csv_options 用于CSV，Excel需通过 cast 转换为文本
+                df = pl.read_excel(source=path, sheet_id=1, engine="calamine") # 读取第一个表
+                
+                # 需求：读取每列数据类型为文本 (String)
+                df = df.select(pl.all().cast(pl.String))
+                
+                original_shape = df.shape
+                self.finished_one.emit(filename, df, original_shape)
+                
+            except Exception as e:
+                self.progress.emit(f"读取失败 {path}: {str(e)}")
+        
+        self.all_finished.emit()
+
+class ExportWorker(QThread):
+    """后台导出线程，防止界面卡死"""
+    progress = Signal(str)       # 发送当前正在导出的文件名
+    finished_one = Signal(str)   # 单个完成信号
+    error_occurred = Signal(str) # 错误信号
+    all_finished = Signal()      # 全部完成信号
+
+    def __init__(self, tasks):
+        """
+        tasks: list of tuples (filename, dataframe, save_path)
+        """
+        super().__init__()
+        self.tasks = tasks
+
+    def run(self):
+        for filename, df, save_path in self.tasks:
+            try:
+                self.progress.emit(f"正在导出: {filename} ...")
+                # 耗时操作：写 Excel
+                df.write_excel(save_path)
+                self.finished_one.emit(f"成功导出: {save_path}")
+            except Exception as e:
+                self.error_occurred.emit(f"导出失败 {filename}: {str(e)}")
+        
+        self.all_finished.emit()
+
+
+from PySide6.QtGui import QColor, QBrush # 需要额外引入 QColor
+
+class DuplicateCheckDialog(QDialog):
+    """重复数据检查窗口 (优化版：自动分组排序 + 高亮显示)"""
+    def __init__(self, df: pl.DataFrame, parent=None):
+        super().__init__(parent)
+        self.df = df
+        self.result_df = None
+        self.setWindowTitle("重复数据检查与处理")
+        self.resize(1000, 700) # 稍微调大一点以便观察
+        self.setup_ui()
+
+    def setup_ui(self):
+        layout = QVBoxLayout(self)
+
+        # 1. 列选择
+        col_group = QGroupBox("1. 选择检查重复的列 (多选)")
+        col_layout = QHBoxLayout()
+        self.col_list = QListWidget()
+        self.col_list.setSelectionMode(QListWidget.MultiSelection)
+        self.col_list.addItems(self.df.columns)
+        col_layout.addWidget(self.col_list)
+        
+        check_btn = QPushButton("检查并预览")
+        check_btn.clicked.connect(self.check_duplicates)
+        check_btn.setStyleSheet("font-weight: bold; background-color: #e1f5fe;")
+        col_layout.addWidget(check_btn)
+        col_group.setLayout(col_layout)
+        layout.addWidget(col_group)
+
+        # 2. 重复数据显示区
+        self.table = QTableWidget()
+        layout.addWidget(QLabel("重复数据预览 (已按重复项排序，不同组使用不同颜色区分):"))
+        layout.addWidget(self.table)
+
+        # 3. 操作区
+        action_group = QGroupBox("操作")
+        action_layout = QHBoxLayout()
+        
+        self.keep_first_btn = QPushButton("保留第一条 (自动)")
+        self.keep_first_btn.clicked.connect(lambda: self.apply_dedup("first"))
+        
+        self.keep_last_btn = QPushButton("保留最后一条 (自动)")
+        self.keep_last_btn.clicked.connect(lambda: self.apply_dedup("last"))
+        
+        action_layout.addWidget(self.keep_first_btn)
+        action_layout.addWidget(self.keep_last_btn)
+        action_group.setLayout(action_layout)
+        layout.addWidget(action_group)
+
+    def check_duplicates(self):
+        selected_items = self.col_list.selectedItems()
+        if not selected_items:
+            QMessageBox.warning(self, "提示", "请先选择至少一列")
+            return
+        
+        # 获取用户选择的查重依据列
+        self.subset = [item.text() for item in selected_items]
+        
+        # 1. 查找重复项的掩码
+        mask = self.df.select(pl.col(self.subset)).is_duplicated()
+        
+        # 2. 筛选出重复数据，并立即按这些列排序！
+        # 排序是实现“放在一起”的关键
+        dup_df = self.df.filter(mask).sort(self.subset)
+        
+        row_count = dup_df.shape[0]
+        if row_count == 0:
+            QMessageBox.information(self, "结果", "未发现重复数据")
+            self.table.setRowCount(0)
+            return
+            
+        QMessageBox.information(self, "结果", f"发现 {row_count} 条重复记录\n列表将显示前 1000 条供预览")
+        
+        # 3. 设置显示上限，避免渲染过多卡顿
+        display_limit = min(1000, row_count)
+        display_df = dup_df.head(display_limit)
+        
+        self.table.setRowCount(display_limit)
+        self.table.setColumnCount(display_df.width)
+        self.table.setHorizontalHeaderLabels(display_df.columns)
+        
+        # 定义一组柔和的背景色用于交替显示
+        # 淡蓝, 淡绿, 淡橙, 淡紫
+        bg_colors = [
+            QColor("#E3F2FD"), 
+            QColor("#E8F5E9"), 
+            QColor("#FFF3E0"), 
+            QColor("#F3E5F5")
+        ]
+        color_idx = 0
+        
+        # 用于记录上一行的关键值，判断是否需要切换颜色
+        prev_key_values = None 
+        
+        # 4. 遍历并填充表格
+        # 将 polars 数据转为 Python 列表处理，以便于比较 tuple
+        # 获取用于判断重复的子集数据
+        subset_data = display_df.select(self.subset).rows()
+        
+        for r in range(display_limit):
+            # 获取当前行的关键值 (即查重依据的那些列的值)
+            current_key_values = subset_data[r] # 这是一个 tuple
+            
+            # 如果不是第一行，且当前行的关键值与上一行不同，说明进入了新的一组
+            if r > 0 and current_key_values != prev_key_values:
+                color_idx = (color_idx + 1) % len(bg_colors) # 切换到下一个颜色
+            
+            current_color = bg_colors[color_idx]
+            prev_key_values = current_key_values
+            
+            # 填充该行的所有列
+            for c, col_name in enumerate(display_df.columns):
+                # 获取单元格数据
+                val = str(display_df[r, col_name])
+                item = QTableWidgetItem(val)
+                # 设置背景色
+                item.setBackground(current_color)
+                # 设置只读，防止误触
+                item.setFlags(item.flags() ^ Qt.ItemIsEditable) 
+                self.table.setItem(r, c, item)
+
+    def apply_dedup(self, strategy):
+        if not hasattr(self, 'subset'):
+            QMessageBox.warning(self, "错误", "请先执行检查")
+            return
+            
+        # 使用 Polars 的 unique 功能进行实际去重
+        self.result_df = self.df.unique(subset=self.subset, keep=strategy)
+        self.accept()
+
+import io
+import matplotlib
+matplotlib.use('QtAgg') # 指定后端
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
+from PySide6.QtGui import QImage, QPixmap, QClipboard
+
+# 配置字体以支持中文 (按优先级尝试)
+plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'Arial Unicode MS', 'sans-serif']
+plt.rcParams['axes.unicode_minus'] = False # 解决负号显示问题
+
+class DataDistributionDialog(QDialog):
+    """数据分布预览窗口"""
+    def __init__(self, df: pl.DataFrame, filename: str, parent=None):
+        super().__init__(parent)
+        self.df = df
+        self.filename = filename
+        self.setWindowTitle(f"数据分布预览 - {filename}")
+        self.resize(1200, 800)
+        self.setup_ui()
+
+    def setup_ui(self):
+        layout = QHBoxLayout(self)
+
+        # === 左侧：设置面板 ===
+        settings_panel = QWidget()
+        settings_panel.setFixedWidth(300)
+        settings_layout = QVBoxLayout(settings_panel)
+
+        # 1. 选择分析列 (数值/文本列)
+        settings_layout.addWidget(QLabel("<b>1. 选择分析列(Y轴/统计对象):</b>"))
+        self.combo_col = QComboBox()
+        self.combo_col.addItems(self.df.columns)
+        settings_layout.addWidget(self.combo_col)
+
+        # 2. 解析方式
+        settings_layout.addWidget(QLabel("<b>2. 该列解析为:</b>"))
+        self.bg_dtype = QButtonGroup(self)
+        self.rb_float = QRadioButton("小数 (Float)")
+        self.rb_int = QRadioButton("整数 (Int)")
+        self.rb_text = QRadioButton("文本 (String)")
+        self.rb_float.setChecked(True) # 默认小数
+        self.bg_dtype.addButton(self.rb_float)
+        self.bg_dtype.addButton(self.rb_int)
+        self.bg_dtype.addButton(self.rb_text)
+        
+        dtype_layout = QVBoxLayout()
+        dtype_layout.addWidget(self.rb_float)
+        dtype_layout.addWidget(self.rb_int)
+        dtype_layout.addWidget(self.rb_text)
+        settings_layout.addLayout(dtype_layout)
+
+        # 3. 空值处理
+        settings_layout.addWidget(QLabel("<b>3. 空值/无效值处理:</b>"))
+        self.bg_null = QButtonGroup(self)
+        self.rb_drop = QRadioButton("跳过 (Drop)")
+        self.rb_fill = QRadioButton("填充0或空文本 (Fill)")
+        self.rb_drop.setChecked(True)
+        self.bg_null.addButton(self.rb_drop)
+        self.bg_null.addButton(self.rb_fill)
+        
+        null_layout = QHBoxLayout()
+        null_layout.addWidget(self.rb_drop)
+        null_layout.addWidget(self.rb_fill)
+        settings_layout.addLayout(null_layout)
+
+        # 4. 维度分组 (多选)
+        settings_layout.addWidget(QLabel("<b>4. 分组维度标签 (多选):</b>"))
+        settings_layout.addWidget(QLabel("(不选则只有1张总分布图)"))
+        self.list_dims = QListWidget()
+        self.list_dims.setSelectionMode(QListWidget.MultiSelection)
+        self.list_dims.addItems(self.df.columns)
+        settings_layout.addWidget(self.list_dims)
+
+        # 按钮
+        self.btn_plot = QPushButton("📊 生成分布图")
+        self.btn_plot.setStyleSheet("background-color: #2196F3; color: white; font-weight: bold; padding: 8px;")
+        self.btn_plot.clicked.connect(self.plot_data)
+        settings_layout.addWidget(self.btn_plot)
+        
+        self.btn_copy = QPushButton("📋 复制图片到剪贴板")
+        self.btn_copy.clicked.connect(self.copy_to_clipboard)
+        settings_layout.addWidget(self.btn_copy)
+
+        settings_layout.addStretch()
+        layout.addWidget(settings_panel)
+
+        # === 右侧：绘图区 ===
+        # 使用 Matplotlib 的 FigureCanvas
+        self.figure = Figure(figsize=(8, 6), dpi=100)
+        self.canvas = FigureCanvas(self.figure)
+        layout.addWidget(self.canvas, stretch=1)
+
+    def plot_data(self):
+        target_col = self.combo_col.currentText()
+        dim_cols = [item.text() for item in self.list_dims.selectedItems()]
+        
+        # 防止选择自己作为分组
+        if target_col in dim_cols:
+            dim_cols.remove(target_col)
+
+        # === 数据准备阶段 (Polars 高速处理) ===
+        try:
+            # 1. 选列 (目标列 + 维度列)
+            # 使用 lazy 模式或直接 eager
+            work_df = self.df.select([target_col] + dim_cols)
+
+            # 2. 类型转换 (不影响原始数据)
+            is_numeric = True
+            if self.rb_float.isChecked():
+                # strict=False 会将无法解析的转为 null
+                work_df = work_df.with_columns(pl.col(target_col).cast(pl.Float64, strict=False))
+            elif self.rb_int.isChecked():
+                work_df = work_df.with_columns(pl.col(target_col).cast(pl.Int64, strict=False))
+            else:
+                is_numeric = False
+                work_df = work_df.with_columns(pl.col(target_col).cast(pl.String))
+
+            # 3. 空值处理
+            if self.rb_drop.isChecked():
+                work_df = work_df.drop_nulls(subset=[target_col])
+            else:
+                fill_val = 0 if is_numeric else ""
+                work_df = work_df.with_columns(pl.col(target_col).fill_null(fill_val))
+
+            # === 绘图逻辑 ===
+            self.figure.clear()
+            
+            # 如果没有数据
+            if work_df.height == 0:
+                ax = self.figure.add_subplot(111)
+                ax.text(0.5, 0.5, "当前条件下无有效数据", ha='center', va='center', fontsize=14)
+                self.canvas.draw()
+                return
+
+            # 如果没有分组维度 -> 单图
+            if not dim_cols:
+                ax = self.figure.add_subplot(111)
+                self.draw_single_plot(ax, work_df, target_col, is_numeric, "总分布")
+            
+            else:
+                # 多维度分组 -> Faceting
+                # 1. 获取所有组合
+                # 组合成一个 struct 或者 concat string 来分组
+                # 为了简单，我们对维度进行 sort 并去重
+                groups = work_df.select(dim_cols).unique().sort(dim_cols)
+                n_groups = groups.height
+                
+                if n_groups > 16:
+                    QMessageBox.warning(self, "警告", f"分组过多 ({n_groups}组)，仅显示前16组。")
+                    groups = groups.head(16)
+                    n_groups = 16
+
+                # 计算子图行列 (例如 12个 -> 3x4)
+                import math
+                cols = min(4, n_groups)
+                rows = math.ceil(n_groups / cols)
+
+                # 遍历绘制
+                for i in range(n_groups):
+                    # 获取当前组的过滤条件
+                    current_group_row = groups.row(i) # tuple ('A1', 'B1')
+                    
+                    # 构建 filter 表达式
+                    filter_expr = pl.lit(True)
+                    group_label_parts = []
+                    
+                    for dim_idx, dim_val in enumerate(current_group_row):
+                        col_name = dim_cols[dim_idx]
+                        if dim_val is None:
+                            filter_expr = filter_expr & pl.col(col_name).is_null()
+                            group_label_parts.append(f"{col_name}=Null")
+                        else:
+                            filter_expr = filter_expr & (pl.col(col_name) == dim_val)
+                            group_label_parts.append(f"{col_name}={dim_val}")
+                    
+                    sub_df = work_df.filter(filter_expr)
+                    
+                    # 添加子图
+                    ax = self.figure.add_subplot(rows, cols, i+1)
+                    title = "\n".join(group_label_parts) # 换行显示标签，防止太长
+                    self.draw_single_plot(ax, sub_df, target_col, is_numeric, title)
+
+            self.figure.tight_layout()
+            self.canvas.draw()
+
+        except Exception as e:
+            QMessageBox.critical(self, "绘图错误", str(e))
+            import traceback
+            print(traceback.format_exc())
+
+    def draw_single_plot(self, ax, df, col_name, is_numeric, title):
+        """通用单图绘制函数"""
+        data = df.get_column(col_name).to_list()
+        
+        ax.set_title(title, fontsize=10)
+        ax.grid(True, linestyle='--', alpha=0.6)
+
+        if is_numeric:
+            # 数值型：直方图 + 箱线图 (可选，这里只画直方图)
+            # 自动计算 bins
+            if len(data) > 0:
+                ax.hist(data, bins=20, color='#4CAF50', alpha=0.7, edgecolor='black')
+                ax.set_ylabel("频数")
+        else:
+            # 文本型：条形计数图 (Value Counts)
+            # Polars value_counts
+            vc = df.select(pl.col(col_name).value_counts(sort=True)).unnest(col_name)
+            # 取前 10 个，防止文本种类太多挤爆X轴
+            vc = vc.head(10)
+            
+            cats = vc.get_column(col_name).to_list()
+            counts = vc.get_column("count").to_list()
+            
+            # 这里的 cats 可能是 null
+            cats = [str(c) if c is not None else "Null" for c in cats]
+            
+            ax.bar(cats, counts, color='#2196F3', alpha=0.7)
+            ax.set_ylabel("计数")
+            # X轴标签旋转，防止重叠
+            ax.tick_params(axis='x', rotation=45)
+
+    def copy_to_clipboard(self):
+        """将当前 Matplotlib 画布复制到剪贴板"""
+        buf = io.BytesIO()
+        self.figure.savefig(buf, format='png', dpi=150)
+        buf.seek(0)
+        
+        # 将 buffer 转为 QImage
+        image = QImage.fromData(buf.getvalue())
+        QApplication.clipboard().setImage(image)
+        QMessageBox.information(self, "成功", "图片已复制到剪贴板")
+
+from PySide6.QtWidgets import QComboBox, QRadioButton, QButtonGroup
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("DataForge - Python高性能数据工坊")
+        self.resize(1400, 900)
+        self.exporter = None
+        
+        # 核心数据存储: {'filename': DataFrame}
+        self.dfs = {} 
+        # 存储元数据: {'filename': {'orig_shape': (r,c)}}
+        self.meta = {}
+        
+        self.setup_ui()
+
+    def setup_ui(self):
+        main_widget = QWidget()
+        self.setCentralWidget(main_widget)
+        main_layout = QHBoxLayout(main_widget)
+
+        # === 侧边栏：文件管理 ===
+        splitter = QSplitter(Qt.Horizontal)
+        main_layout.addWidget(splitter)
+
+        left_panel = QWidget()
+        left_layout = QVBoxLayout(left_panel)
+        
+        # 按钮区
+        btn_layout = QHBoxLayout()
+        self.btn_load = QPushButton("📂 加载文件")
+        self.btn_load.clicked.connect(self.load_files)
+        self.btn_dup = QPushButton("🔍 查重")
+        self.btn_dup.clicked.connect(self.open_duplicate_check)
+        # === 新增按钮 ===
+        self.btn_viz = QPushButton("📊 分布")
+        self.btn_viz.clicked.connect(self.open_distribution_view)
+        self.btn_export = QPushButton("💾 导出")
+        self.btn_export.clicked.connect(self.export_current)
+        btn_layout.addWidget(self.btn_load)
+        btn_layout.addWidget(self.btn_dup)
+        btn_layout.addWidget(self.btn_viz) # 添加到布局
+        btn_layout.addWidget(self.btn_export)
+        left_layout.addLayout(btn_layout)
+
+        # 文件列表表格
+        self.file_table = QTableWidget()
+        self.file_table.setColumnCount(4)
+        self.file_table.setHorizontalHeaderLabels(["表名 (Key)", "原始行列", "当前行列", "状态"])
+        self.file_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.file_table.setSelectionBehavior(QTableWidget.SelectRows)
+        left_layout.addWidget(self.file_table)
+        
+        # 进度条
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        left_layout.addWidget(self.progress_bar)
+
+        splitter.addWidget(left_panel)
+
+        # === 右侧：代码与日志 ===
+        right_panel = QWidget()
+        right_layout = QVBoxLayout(right_panel)
+        
+        # 顶部：代码控制
+        code_ctrl_layout = QHBoxLayout()
+        code_ctrl_layout.addWidget(QLabel("<b>Python 代码操作区 (已注入变量: dfs, pl)</b>"))
+        self.btn_run = QPushButton("▶ 运行代码")
+        self.btn_run.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;")
+        self.btn_run.clicked.connect(self.run_code)
+        code_ctrl_layout.addWidget(self.btn_run)
+        code_ctrl_layout.addStretch()
+        right_layout.addLayout(code_ctrl_layout)
+
+        # 代码编辑器
+        self.code_edit = QPlainTextEdit()
+        self.code_edit.setPlaceholderText("# 示例:\n# df = dfs['filename']\n# df = df.filter(...)\n# dfs['filename'] = df")
+        self.code_edit.setStyleSheet("font-family: Consolas, monospace; font-size: 11pt; background-color: #2b2b2b; color: #f8f8f2;")
+        right_layout.addWidget(self.code_edit, stretch=2)
+
+        # 历史记录/日志
+        right_layout.addWidget(QLabel("运行日志 / 历史:"))
+        self.log_view = QListWidget()
+        right_layout.addWidget(self.log_view, stretch=1)
+
+        splitter.addWidget(right_panel)
+        splitter.setSizes([500, 900])
+
+    def log(self, message, is_error=False):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        item = QListWidgetItem(f"[{timestamp}] {message}")
+        if is_error:
+            item.setForeground(Qt.red)
+        self.log_view.addItem(item)
+        self.log_view.scrollToBottom()
+
+    # === 功能实现: 加载文件 ===
+    def load_files(self):
+        files, _ = QFileDialog.getOpenFileNames(self, "选择Excel文件", "", "Excel Files (*.xlsx)")
+        if not files:
+            return
+
+        self.btn_load.setDisabled(True)
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setRange(0, 0) # 无限模式
+
+        self.loader = DataLoader(files)
+        self.loader.progress.connect(self.log)
+        self.loader.finished_one.connect(self.on_file_loaded)
+        self.loader.all_finished.connect(self.on_load_complete)
+        self.loader.start()
+
+    def on_file_loaded(self, filename, df, original_shape):
+        self.dfs[filename] = df
+        self.meta[filename] = {'orig_shape': original_shape}
+        self.update_table_row(filename)
+        self.log(f"已加载: {filename} {original_shape}")
+
+    def on_load_complete(self):
+        self.btn_load.setDisabled(False)
+        self.progress_bar.setVisible(False)
+        self.log("所有文件加载完毕")
+
+    def update_table_row(self, filename):
+        """更新文件列表中的某一行，如果不存在则新增"""
+        row_idx = -1
+        # 查找是否存在
+        for r in range(self.file_table.rowCount()):
+            if self.file_table.item(r, 0).text() == filename:
+                row_idx = r
+                break
+        
+        if row_idx == -1:
+            row_idx = self.file_table.rowCount()
+            self.file_table.insertRow(row_idx)
+            self.file_table.setItem(row_idx, 0, QTableWidgetItem(filename))
+
+        # 获取数据
+        df = self.dfs.get(filename)
+        if df is None: return
+
+        orig = self.meta.get(filename, {}).get('orig_shape', (0,0))
+        curr = df.shape
+        
+        self.file_table.setItem(row_idx, 1, QTableWidgetItem(f"{orig[0]}行, {orig[1]}列"))
+        self.file_table.setItem(row_idx, 2, QTableWidgetItem(f"{curr[0]}行, {curr[1]}列"))
+        
+        # 状态着色
+        status_item = QTableWidgetItem("Ready")
+        if curr != orig:
+            status_item.setText("Modified")
+            status_item.setForeground(Qt.blue)
+        self.file_table.setItem(row_idx, 3, status_item)
+
+    # === 功能实现: 查重 ===
+    def open_duplicate_check(self):
+        selected_rows = self.file_table.selectionModel().selectedRows()
+        if not selected_rows:
+            QMessageBox.warning(self, "提示", "请先在左侧列表选择一个工作表")
+            return
+        
+        filename = self.file_table.item(selected_rows[0].row(), 0).text()
+        df = self.dfs.get(filename)
+        
+        dialog = DuplicateCheckDialog(df, self)
+        if dialog.exec() == QDialog.Accepted:
+            # 更新 DataFrame
+            self.dfs[filename] = dialog.result_df
+            self.update_table_row(filename)
+            self.log(f"表 {filename} 已去重。新行数: {dialog.result_df.shape[0]}")
+
+    # === 功能实现: 导出 (多线程版) ===
+    def export_current(self):
+        # 1. 获取选中的行
+        selected_rows = self.file_table.selectionModel().selectedRows()
+        if not selected_rows:
+            QMessageBox.warning(self, "提示", "请选择要导出的表")
+            return
+
+        # 2. 选择保存目录
+        target_dir = QFileDialog.getExistingDirectory(self, "选择导出文件夹")
+        if not target_dir:
+            return
+
+        # 3. 准备导出任务列表
+        export_tasks = []
+        for idx in selected_rows:
+            filename = self.file_table.item(idx.row(), 0).text()
+            df = self.dfs.get(filename)
+            if df is not None:
+                save_path = os.path.join(target_dir, f"{filename}.xlsx")
+                export_tasks.append((filename, df, save_path))
+
+        if not export_tasks:
+            return
+
+        # 4. 锁定界面，防止重复操作
+        self.btn_export.setEnabled(False)
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setRange(0, len(export_tasks)) # 设置进度条最大值
+        self.progress_bar.setValue(0)
+
+        # 5. 启动后台线程
+        self.exporter = ExportWorker(export_tasks)
+        self.exporter.progress.connect(self.log)
+        self.exporter.finished_one.connect(self.on_export_one_finished) # 更新进度条
+        self.exporter.error_occurred.connect(lambda msg: self.log(msg, True))
+        self.exporter.all_finished.connect(self.on_export_all_finished)
+        self.exporter.start()
+
+    def on_export_one_finished(self, msg):
+        """单个文件导出完成的回调"""
+        self.log(msg)
+        current_val = self.progress_bar.value()
+        self.progress_bar.setValue(current_val + 1)
+
+    def on_export_all_finished(self):
+        """所有导出完成的回调"""
+        self.btn_export.setEnabled(True)
+        self.progress_bar.setVisible(False)
+        self.log("所有导出任务完成！")
+        QMessageBox.information(self, "完成", "导出已完成")
+
+    # === 核心功能: 运行代码 ===
+    def run_code(self):
+        code = self.code_edit.toPlainText()
+        if not code.strip():
+            return
+
+        # 准备执行环境
+        local_scope = {
+            'dfs': self.dfs, # 引用传递，修改 dfs 会直接影响 self.dfs
+            'pl': pl,
+            'cs':cs,
+            'print': self.log # 重定向 print 到日志
+        }
+
+        start_time = time.time()
+        try:
+            self.log(">>> 开始执行代码...")
+            exec(code, {}, local_scope)
+            
+            # 代码执行完后，UI需要刷新
+            # 因为 dfs 是字典，用户可能添加了新key (join表) 或修改了现有key
+            
+            # 1. 刷新现有的
+            current_keys = list(self.dfs.keys()) # 获取所有当前的key
+            self.file_table.setRowCount(0) # 简单粗暴：重绘列表 (为了处理新增/删除的表)
+            
+            for key in current_keys:
+                # 如果是新产生的表，没有 original shape，设为 (0,0) 或 当前 shape
+                if key not in self.meta:
+                    self.meta[key] = {'orig_shape': self.dfs[key].shape}
+                self.update_table_row(key)
+
+            duration = time.time() - start_time
+            self.log(f"<<< 执行成功 (耗时 {duration:.4f}s)")
+
+        except Exception as e:
+            error_msg = traceback.format_exc()
+            self.log(f"执行出错:\n{error_msg}", True)
+            QMessageBox.critical(self, "代码错误", f"发生异常:\n{e}")
+    # === 功能实现: 数据分布预览 ===
+    def open_distribution_view(self):
+        selected_rows = self.file_table.selectionModel().selectedRows()
+        if not selected_rows:
+            QMessageBox.warning(self, "提示", "请先在左侧列表选择一个工作表")
+            return
+        
+        filename = self.file_table.item(selected_rows[0].row(), 0).text()
+        df = self.dfs.get(filename)
+        
+        # 传入 df 和文件名
+        dialog = DataDistributionDialog(df, filename, self)
+        dialog.exec()
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    
+    # 设置深色主题风格 (可选)
+    app.setStyle("Fusion")
+    
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
+```
+2. 运行处理代码
+```
+""" 揉平 """
+df = dfs['20260214_15-18_揉平结果']
+
+# 删除从 "列A" 开始，到 "列B" 结束的所有中间列（含 A 和 B）
+cols = df.columns
+# 核心：列表推导式 + 切片获取所有中间列
+drop_list = [c for s, e in [
+    ('操作员', '物料编码'), 
+    ('收口前中心孔尺寸结果', '收口工位压力值'),
+    ('正极揉平工位压力值结果', '负极端面结果'),
+    ('焊接功率', '焊后检测结果'),
+    ('焊接压力', '焊接同心度')
+] for c in cols[cols.index(s) : cols.index(e)+1]]
+df = df.drop(drop_list)
+
+# 删除唯一值数量等于 1 的列和等于2但是有一个唯一值为空的列
+drop_cols = []
+# 遍历每一列进行检查
+for col in df.columns:
+    # 获取该列的唯一值列表
+    u_vals = df[col].unique().to_list()
+    n = len(u_vals)
+    # 逻辑判断：
+    # 1. 只有1个唯一值 (例如全列都是 "OK"，或者全列都是 "0")
+    # 2. 只有2个唯一值，且其中包含空字符串 (例如 ["OK", ""] 或 ["", "NG"])
+    #    注意：这里也顺带检查了 None/null，以防万一
+    if n == 1:
+        drop_cols.append(col)
+    elif n == 2 and ("" in u_vals or None in u_vals):
+        drop_cols.append(col)
+# 执行删除
+if drop_cols:
+    df = df.drop(drop_cols)
+    print(f"✅ 已清理 {len(drop_cols)} 列 (单一值或含空值):")
+    print(drop_cols)
+else:
+    print("⚠️ 未发现符合清理条件的列")
+
+# 清洗数据行
+df = df.filter(~(
+    (pl.col('揉平后卷芯高度') == '88.3') |
+    ((pl.col('揉平后正极耳外漏') == '0.000') & (pl.col('揉平后负极耳外漏') == '0.000')) |
+    (pl.col('揉平后正极耳外漏') == '1.2') |
+    (pl.col('揉平后负极耳外漏') == '0.3') |
+    (pl.col('条码').is_in(['', '0'])) |
+    (pl.col('揉平工位') == '0')
+))
+
+# 列数据去重 保留第一个
+df = df.unique(subset=["条码"], keep="first")
+
+# 修改列数据或增加列数据
+df = df.with_columns([
+    pl.col("产线名称").str.slice(6, 3).alias("产线名称"),
+    (pl.col("设备名称").str.slice(0, 3) + '揉平' + pl.col("设备名称").str.slice(13, 2)).alias("设备名称"),
+])
+
+# 重命名
+df = df.rename({"磁悬浮动子": "动子","产线名称": '组装产线', "设备名称": '揉平设备'})
+
+# 删除指定列
+df = df.drop(
+    cs.starts_with("hi-pot") & ~cs.ends_with("工位"),
+    "采集时间",
+    "揉平进给速度"
+)
+
+# 重复列删除
+preferred_cols = ['揉平工位'] # 在这里填入优先保留的列
+seen = {}    # 记录 {哈希指纹: 当前确定的代表列名}
+drops = []   # 最终待删除的重复列
+for col in df.columns:
+    # 计算指纹
+    h = df[col].hash().sum()
+    
+    if h in seen:
+        # 指纹冲突，进行精确比对
+        existing_col = seen[h]
+        if df[col].equals(df[existing_col]):
+            # --- 核心逻辑：判断谁该被删除 ---
+            # 如果当前列在优先名单中，且之前的列不在优先名单中：
+            if col in preferred_cols and existing_col not in preferred_cols:
+                drops.append(existing_col) # 抛弃之前记录的列
+                seen[h] = col              # 将当前列设为该内容的“代表”
+                # print(f"🔄 替换：由于 {col} 在优先名单，舍弃了 {existing_col}")
+            else:
+                # 否则，默认删除当前列 (或者是之前的列已经在优先名单中了)
+                drops.append(col)
+    else:
+        seen[h] = col # 第一次遇见该内容
+# 3. 执行删除
+if drops:
+    # 注意：如果同一组重复列有多个都在优先名单，上面的逻辑会保留最先出现的那个优先列
+    df = df.drop(drops)
+    print(f"✅ 处理完成！删除了 {len(drops)} 个重复列。")
+    print(f"🗑️ 被删除的列: {drops}")
+else:
+    print("⚠️ 没有发现内容重复的列")
+
+# 更新
+dfs['20260214_15-18_揉平结果'] = df
+
+
+""" 切卷过程 """
+df = dfs['20260214_13-16_集成切卷过程']
+cols = df.columns
+drop_list = [c for s, e in [
+    ('操作员', '物料编码')
+] for c in cols[cols.index(s) : cols.index(e)+1]]
+df = df.drop(drop_list)
+
+# 基于唯一值删除列
+drop_cols = []
+for col in df.columns:
+    u_vals = df[col].unique().to_list()
+    n = len(u_vals)
+    if n == 1:
+        drop_cols.append(col)
+    elif n == 2 and ("" in u_vals or None in u_vals):
+        drop_cols.append(col)
+if drop_cols:
+    df = df.drop(drop_cols)
+    print(f"✅ 已清理 {len(drop_cols)} 列 (单一值或含空值):")
+    print(drop_cols)
+else:
+    print("⚠️ 未发现符合清理条件的列")
+
+df = df.filter(~( 
+    (pl.col('正极极耳高度均值')=='0.000') | 
+    (pl.col('负极极耳高度均值')=='0.000') |
+    (pl.col('条码').is_in(['', '0']))
+))
+df = df.unique(subset=["条码"], keep="first")
+df = df.with_columns([
+    pl.col("产线名称").str.slice(6, 3).alias("产线名称"),
+    (pl.col("设备名称").str.slice(0, 3) + '切卷' + pl.col("设备名称").str.slice(9, 2)).alias("设备名称"),
+])
+df = df.rename({"产线名称": '切卷产线', "设备名称": '切卷设备'})
+
+# 删除重复值
+seen = {}
+drops = []
+for col in df.columns:
+    h = df[col].hash().sum()
+    if h in seen:
+        first_col = seen[h]
+        if df[col].equals(df[first_col]):
+            drops.append(col)
+    else:
+        seen[h] = col
+if drops:
+    df = df.drop(drops)
+    print(f"✅ 已删除 {len(drops)} 个重复列: {drops}")
+else:
+    print("⚠️ 没有发现内容重复的列")
+
+df = df.drop(
+    "采集时间",
+    "正极模切速度"
+)
+
+dfs['20260214_13-16_集成切卷过程'] = df
+
+""" 切卷结果 """
+df = dfs['20260214_13-16_集成切卷结果']
+cols = df.columns
+drop_list = [c for s, e in [
+    ('设备名称', '物料编码')
+] for c in cols[cols.index(s) : cols.index(e)+1]]
+df = df.drop(drop_list)
+
+# 基于唯一值删除列
+drop_cols = []
+for col in df.columns:
+    u_vals = df[col].unique().to_list()
+    n = len(u_vals)
+    if n == 1:
+        drop_cols.append(col)
+    elif n == 2 and ("" in u_vals or None in u_vals):
+        drop_cols.append(col)
+if drop_cols:
+    df = df.drop(drop_cols)
+    print(f"✅ 已清理 {len(drop_cols)} 列 (单一值或含空值):")
+    print(drop_cols)
+else:
+    print("⚠️ 未发现符合清理条件的列")
+
+df = df.filter(~( 
+    (pl.col('条码').is_in(['', '0']))
+))
+df = df.unique(subset=["条码"], keep="first")
+
+# 删除重复值
+seen = {}
+drops = []
+for col in df.columns:
+    h = df[col].hash().sum()
+    if h in seen:
+        first_col = seen[h]
+        if df[col].equals(df[first_col]):
+            drops.append(col)
+    else:
+        seen[h] = col
+if drops:
+    df = df.drop(drops)
+    print(f"✅ 已删除 {len(drops)} 个重复列: {drops}")
+else:
+    print("⚠️ 没有发现内容重复的列")
+
+df = df.drop(
+    "采集时间",
+    "正极模切速度"
+)
+
+dfs['20260214_13-16_集成切卷结果'] = df
+
+""" 关联 """
+df = dfs['20260214_15-18_揉平结果'].join(
+    dfs['20260214_13-16_集成切卷过程'], 
+    on="条码", 
+    how="inner", 
+    suffix="_2"
+) # 增加关联表
+
+# 基于唯一值删除列
+drop_cols = []
+for col in df.columns:
+    u_vals = df[col].unique().to_list()
+    n = len(u_vals)
+    if n == 1:
+        drop_cols.append(col)
+    elif n == 2 and ("" in u_vals or None in u_vals):
+        drop_cols.append(col)
+if drop_cols:
+    df = df.drop(drop_cols)
+    print(f"✅ 已清理 {len(drop_cols)} 列 (单一值或含空值):")
+    print(drop_cols)
+else:
+    print("⚠️ 未发现符合清理条件的列")
+
+# 重复列删除
+preferred_cols = ['揉平工位'] # 在这里填入优先保留的列
+seen = {}    # 记录 {哈希指纹: 当前确定的代表列名}
+drops = []   # 最终待删除的重复列
+for col in df.columns:
+    # 计算指纹
+    h = df[col].hash().sum()
+    
+    if h in seen:
+        # 指纹冲突，进行精确比对
+        existing_col = seen[h]
+        if df[col].equals(df[existing_col]):
+            # --- 核心逻辑：判断谁该被删除 ---
+            # 如果当前列在优先名单中，且之前的列不在优先名单中：
+            if col in preferred_cols and existing_col not in preferred_cols:
+                drops.append(existing_col) # 抛弃之前记录的列
+                seen[h] = col              # 将当前列设为该内容的“代表”
+                # print(f"🔄 替换：由于 {col} 在优先名单，舍弃了 {existing_col}")
+            else:
+                # 否则，默认删除当前列 (或者是之前的列已经在优先名单中了)
+                drops.append(col)
+    else:
+        seen[h] = col # 第一次遇见该内容
+# 3. 执行删除
+if drops:
+    # 注意：如果同一组重复列有多个都在优先名单，上面的逻辑会保留最先出现的那个优先列
+    df= df.drop(drops)
+    print(f"✅ 处理完成！删除了 {len(drops)} 个重复列。")
+    print(f"🗑️ 被删除的列: {drops}")
+else:
+    print("⚠️ 没有发现内容重复的列")
+
+dfs['全关联'] = df
+
+# 筛选良品
+df = df.filter(~(
+    (pl.col('不良项').str.contains('NG'))
+))
+# 使用 horizontal 逻辑横向扫描所有字符串列
+df = df.filter(
+    ~pl.any_horizontal(
+        cs.string() == ""
+    )
+)
+dfs['良品关联'] = df
+```
+3. 数据分析界面
+```
+import sys
+import time
+from enum import Enum
+from typing import Dict, List, Any, Tuple
+
+# 高性能计算库
+import polars as pl
+import numpy as np
+
+# GUI库
+from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
+                               QHBoxLayout, QPushButton, QFileDialog, QTableView, 
+                               QLabel, QCheckBox, QSplitter, QComboBox, 
+                               QProgressBar, QTextEdit, QGroupBox, QScrollArea)
+from PySide6.QtCore import Qt, QAbstractTableModel, QThread, Signal
+
+# 机器学习与统计
+from sklearn.preprocessing import LabelEncoder
+import lightgbm as lgb
+
+# ==========================================
+# 1. 核心数据引擎 (Polars)
+# ==========================================
+
+class ColumnType(Enum):
+    IGNORE = "不参与分析"
+    NUMERIC = "数值"
+    CATEGORY = "文本/类别"
+
+class DataEngine:
+    """
+    负责数据的读取、类型强制转换和清洗
+    """
+    
+    @staticmethod
+    def load_and_convert(path: str) -> Tuple[pl.DataFrame, Dict[str, ColumnType]]:
+        """
+        读取 Excel，并执行：默认转数字，转不了的为文本
+        """
+        # 1. 读取 Excel (建议安装 fastexcel: pip install fastexcel)
+        # infer_schema_length=0 意味着强制所有列以 String 读取，确保原始数据不丢失
+        try:
+            df_raw = pl.read_excel(path, sheet_id=1, engine="fastexcel", infer_schema_length=0)
+        except:
+            # 兼容性回退
+            df_raw = pl.read_excel(path, sheet_id=1, infer_schema_length=0)
+
+        final_types = {}
+        valid_cols = []
+        
+        # 2. 遍历列进行类型“尝试转换”
+        # 使用 LazyFrame 优化性能，但为了类型推断需要即时执行部分逻辑
+        df_processed = df_raw.clone()
+        
+        transform_exprs = []
+        
+        for col in df_raw.columns:
+            # 尝试转换为 Float64，strict=False 会将无法转换的变为 null
+            # strip_chars() 去除可能存在的空格
+            s_str = df_raw[col].str.strip_chars()
+            s_num = s_str.cast(pl.Float64, strict=False)
+            
+            # 统计转换后的情况
+            original_nulls = s_str.null_count()
+            new_nulls = s_num.null_count()
+            total_rows = df_raw.height
+            
+            # 判定逻辑：
+            # 如果原本不是null，转换后变成了null，说明是文本无法转数字
+            # 我们允许极少量的转换失败（比如表头下的单位行），但如果大量失败则认为是文本
+            failed_conversion_count = new_nulls - original_nulls
+            
+            is_numeric = False
+            
+            if failed_conversion_count < (total_rows * 0.2): # 阈值：如果只有不到20%的数据转换失败，尝试抢救
+                # 如果整列都是数字，那就定为 NUMERIC
+                is_numeric = True
+                transform_exprs.append(s_num.alias(col)) # 替换为数字列
+                final_types[col] = ColumnType.NUMERIC
+            else:
+                # 转换失败太多，保持为文本
+                is_numeric = False
+                transform_exprs.append(s_str.alias(col)) # 保持清洗过空格的文本
+                final_types[col] = ColumnType.CATEGORY
+
+            # 默认勾选逻辑：如果是"条码"或全空，默认忽略
+            if "条码" in col or new_nulls == total_rows:
+                final_types[col] = ColumnType.IGNORE
+            elif is_numeric:
+                final_types[col] = ColumnType.NUMERIC
+            else:
+                final_types[col] = ColumnType.CATEGORY
+
+        # 执行所有列的转换
+        df_final = df_raw.select(transform_exprs)
+        
+        return df_final, final_types
+
+    @staticmethod
+    def clean_outliers_mad(series: pl.Series, threshold: float = 5.0) -> pl.Series:
+        """
+        使用 MAD (Median Absolute Deviation) 算法清洗数值列。
+        可以区分 "0, 10, 11" 中的 0 (异常) 和 "-1, 0, 1" 中的 0 (正常)。
+        """
+        # 排除 null
+        s = series.drop_nulls()
+        if s.len() < 3: return series
+
+        median = s.median()
+        # 计算绝对中位差
+        mad = (s - median).abs().median()
+        
+        # 如果 MAD 为 0 (例如数据是 10, 10, 10, 10, 0)，
+        # 说明绝大多数数据是一样的，此时用平均绝对偏差或其他方式，或者直接跳过严格判定
+        if mad == 0:
+            # 回退策略：如果在极小范围内波动，可能不需要清洗，
+            # 或者数据本身就是离散的整数（如工位号），此时不应删除
+            return series
+
+        # 修正系数 1.4826 使得 MAD 在正态分布下一致于标准差
+        limit = threshold * mad * 1.4826
+        
+        lower = median - limit
+        upper = median + limit
+        
+        # 将超出范围的值设为 null (Polars expression)
+        # 注意：这里返回的是表达式逻辑，需要在上下文中执行
+        return series.map_elements(
+            lambda x: x if (x is None) or (lower <= x <= upper) else None, 
+            return_dtype=pl.Float64
+        )
+
+# ==========================================
+# 2. 分析线程 (Worker)
+# ==========================================
+
+class AnalysisWorker(QThread):
+    finished = Signal(str) # 返回文本报告
+    progress = Signal(int)
+
+    def __init__(self, df: pl.DataFrame, col_config: Dict[str, ColumnType], target_col: str):
+        super().__init__()
+        self.df = df
+        self.col_config = col_config
+        self.target_col = target_col
+
+    def run(self):
+        try:
+            self.progress.emit(10)
+            report = [f"=== 分析报告: 目标列 [{self.target_col}] ===\n"]
+            
+            # 1. 筛选参与分析的列
+            active_cols = [c for c, t in self.col_config.items() if t != ColumnType.IGNORE]
+            if self.target_col not in active_cols:
+                report.append("错误：目标列未被勾选或被设为忽略。")
+                self.finished.emit("\n".join(report))
+                return
+
+            # 2. 数据清洗 (针对数值列去噪)
+            # 使用 LazyFrame 链式处理
+            lf = self.df.lazy().select(active_cols)
+            
+            # 构建清洗表达式
+            clean_ops = []
+            for col in active_cols:
+                ctype = self.col_config[col]
+                if ctype == ColumnType.NUMERIC and col != self.target_col:
+                    # 对特征列进行 MAD 清洗，去除不合理的 0 或极值
+                    # 注意：目标列通常不建议盲目清洗，除非确定是噪音，这里暂不清目标列
+                    # 我们需要将 Python 函数应用到 Polars Series，这里为了代码简洁
+                    # 在大数据量下，建议先转 pandas 或使用 polars原生表达式近似处理
+                    pass 
+            
+            # 将 LazyFrame 转为 Pandas DataFrame 以便进行复杂的统计分析 (LightGBM/Sklearn)
+            # Polars 清洗异常值比较麻烦（需要 map_elements），这里在 Pandas 中做 MAD 清洗更灵活
+            df_pd = lf.collect().to_pandas()
+            
+            self.progress.emit(30)
+            
+            # --- Pandas 阶段的数据预处理 ---
+            
+            # A. 数值列异常值处理 (MAD算法)
+            numeric_cols = [c for c in active_cols if self.col_config[c] == ColumnType.NUMERIC]
+            category_cols = [c for c in active_cols if self.col_config[c] == ColumnType.CATEGORY]
+            
+            report.append(f"参与分析: 数值列 {len(numeric_cols)} 个, 文本/类别列 {len(category_cols)} 个\n")
+
+            # 清洗逻辑：遍历数值列，把不合理的值置为 NaN
+            rows_before = len(df_pd)
+            for col in numeric_cols:
+                series = df_pd[col]
+                median = series.median()
+                mad = (series - median).abs().median()
+                if mad > 0:
+                    # 阈值设为 5 (比较宽松，保留 -1, 0, 1 这种，但删除 0, 10, 10 里的 0)
+                    limit = 6 * mad * 1.4826
+                    # 标记异常值为 NaN
+                    mask = (series < (median - limit)) | (series > (median + limit))
+                    df_pd.loc[mask, col] = np.nan
+            
+            # 去除目标列为空的行 (这是必须的，因为我们要预测它)
+            df_pd = df_pd.dropna(subset=[self.target_col])
+            rows_after = len(df_pd)
+            report.append(f"数据清洗: 剔除无效行后，剩余 {rows_after} 行 (原 {rows_before} 行)")
+            
+            self.progress.emit(50)
+
+            # 3. 关系分析 1: 线性相关性 (Pearson)
+            # 看看哪些数值列跟目标列直接线性相关
+            if len(numeric_cols) > 1:
+                corr_matrix = df_pd[numeric_cols].corr(method='pearson')
+                if self.target_col in corr_matrix:
+                    corrs = corr_matrix[self.target_col].drop(self.target_col).abs().sort_values(ascending=False)
+                    report.append("\n--- [线性关系] 数值列相关性 Top 5 ---")
+                    report.append("(数值越大关系越紧密，1.0为完全相关)")
+                    for idx, val in corrs.head(5).items():
+                        report.append(f"  {idx}: {val:.4f}")
+            
+            self.progress.emit(70)
+
+            # 4. 关系分析 2: 非线性与组合关系 (LightGBM)
+            # 这是核心：可以捕捉 "A = B * C" 或 "A 在类别 D 下受 B 影响" 等复杂关系
+            report.append("\n--- [综合影响力] 关键因素排行 (基于AI模型) ---")
+            report.append("此排行综合考虑了线性、非线性组合以及文本类别的影响：")
+            
+            X = df_pd.drop(columns=[self.target_col])
+            y = df_pd[self.target_col]
+            
+            # 对文本列进行编码 (Label Encoding)
+            # LightGBM 可以处理 Categorical，但需要转为 int
+            cat_features_indices = []
+            for i, col in enumerate(X.columns):
+                if col in category_cols:
+                    le = LabelEncoder()
+                    # 填充空文本为 "Unknown" 防止报错
+                    X[col] = X[col].fillna("Unknown").astype(str)
+                    X[col] = le.fit_transform(X[col])
+                    cat_features_indices.append(i)
+                else:
+                    # 数值列填充均值
+                    X[col] = X[col].fillna(X[col].mean())
+
+            # 建立模型
+            # max_depth=5 限制树深，防止过拟合
+            model = lgb.LGBMRegressor(random_state=42, n_estimators=200, max_depth=7, verbose=-1)
+            model.fit(X, y, categorical_feature=cat_features_indices)
+            
+            # 提取特征重要性
+            importances = sorted(zip(X.columns, model.feature_importances_), key=lambda x: x[1], reverse=True)
+            
+            # 计算总重要性用于归一化百分比
+            total_gain = sum(model.feature_importances_)
+            if total_gain == 0: total_gain = 1
+            
+            for name, imp in importances[:12]:
+                percent = (imp / total_gain) * 100
+                report.append(f"  {name}: {percent:.1f}%")
+
+            self.progress.emit(90)
+
+            # 5. 关系分析 3: 类别分组差异 (ANOVA 思想)
+            # 看看哪个文本参数（如工位、设备）对结果影响最大
+            report.append("\n--- [类别影响] 哪个文本参数造成了最大差异? ---")
+            best_cat = None
+            max_diff = 0
+            
+            for col in category_cols:
+                if df_pd[col].nunique() < 2 or df_pd[col].nunique() > 1000: 
+                    continue # 忽略只有1个值或值太多的列(如ID)
+                
+                # 计算组间方差
+                grouped = df_pd.groupby(col)[self.target_col].mean()
+                diff = grouped.max() - grouped.min() # 简单用极差表示
+                
+                if diff > max_diff:
+                    max_diff = diff
+                    best_cat = col
+            
+            if best_cat:
+                report.append(f"  类别列 [{best_cat}] 对结果影响最大，组间均值极差为: {max_diff:.4f}")
+                # 还可以列出该类别下最好的和最差的值
+                grp = df_pd.groupby(best_cat)[self.target_col].mean().sort_values()
+                report.append(f"    - [{best_cat}] 均值最小组: {grp.index[0]} ({grp.iloc[0]:.2f})")
+                report.append(f"    - [{best_cat}] 均值最大组: {grp.index[-1]} ({grp.iloc[-1]:.2f})")
+
+            self.progress.emit(100)
+            self.finished.emit("\n".join(report))
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            self.finished.emit(f"分析过程中发生错误:\n{str(e)}")
+
+# ==========================================
+# 3. 界面逻辑 (GUI)
+# ==========================================
+
+class ColumnWidget(QWidget):
+    def __init__(self, name, dtype):
+        super().__init__()
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 2, 0, 2)
+        
+        self.chk = QCheckBox(name)
+        self.chk.setChecked(dtype != ColumnType.IGNORE)
+        
+        self.combo = QComboBox()
+        self.combo.addItem("数值", ColumnType.NUMERIC)
+        self.combo.addItem("文本", ColumnType.CATEGORY)
+        self.combo.addItem("忽略", ColumnType.IGNORE)
+        
+        # 设置当前选中项
+        index = self.combo.findData(dtype)
+        if index >= 0: self.combo.setCurrentIndex(index)
+        
+        layout.addWidget(self.chk, stretch=3)
+        layout.addWidget(self.combo, stretch=1)
+        
+        # 联动
+        self.chk.stateChanged.connect(self.on_check_changed)
+        self.combo.currentIndexChanged.connect(self.on_combo_changed)
+
+    def on_check_changed(self, state):
+        if state == 0: # Unchecked
+            self.combo.setCurrentData(ColumnType.IGNORE)
+        else:
+            if self.combo.currentData() == ColumnType.IGNORE:
+                self.combo.setCurrentData(ColumnType.NUMERIC) # 默认回数值，或者根据之前状态
+
+    def on_combo_changed(self, index):
+        data = self.combo.currentData()
+        if data == ColumnType.IGNORE:
+            self.chk.setChecked(False)
+        else:
+            self.chk.setChecked(True)
+
+    def get_config(self):
+        return self.combo.currentData()
+
+class PandasModel(QAbstractTableModel):
+    def __init__(self, df: pl.DataFrame):
+        super().__init__()
+        self._df = df.head(50) # 只预览前50行
+        self._rows = self._df.height
+        self._cols = self._df.width
+
+    def rowCount(self, parent=None): return self._rows
+    def columnCount(self, parent=None): return self._cols
+    def data(self, index, role=Qt.DisplayRole):
+        if role == Qt.DisplayRole:
+            val = self._df[index.row(), index.column()]
+            return str(val) if val is not None else ""
+        return None
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+            return self._df.columns[section]
+        return None
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("电池工艺数据归因分析系统 v2.0")
+        self.resize(1200, 800)
+        self.df = None
+        self.col_widgets = {}
+        self.setup_ui()
+
+    def setup_ui(self):
+        main = QWidget()
+        self.setCentralWidget(main)
+        layout = QHBoxLayout(main)
+
+        # Left Panel
+        left = QWidget()
+        left.setFixedWidth(400)
+        l_layout = QVBoxLayout(left)
+        
+        btn_load = QPushButton("1. 加载 Excel 数据")
+        btn_load.clicked.connect(self.load_data)
+        btn_load.setStyleSheet("height: 40px; font-weight: bold; background-color: #2b5b84; color: white;")
+        l_layout.addWidget(btn_load)
+
+        # 列设置区域
+        self.scroll = QScrollArea()
+        self.scroll_content = QWidget()
+        self.scroll_layout = QVBoxLayout(self.scroll_content)
+        self.scroll.setWidget(self.scroll_content)
+        self.scroll.setWidgetResizable(True)
+        
+        grp = QGroupBox("列类型确认 (自动识别)")
+        g_layout = QVBoxLayout(grp)
+        g_layout.addWidget(self.scroll)
+        l_layout.addWidget(grp)
+
+        # 目标选择
+        l_layout.addWidget(QLabel("选择分析目标 (Y):"))
+        self.target_combo = QComboBox()
+        l_layout.addWidget(self.target_combo)
+
+        self.btn_run = QPushButton("2. 开始计算关联关系")
+        self.btn_run.clicked.connect(self.run_analysis)
+        self.btn_run.setEnabled(False)
+        self.btn_run.setStyleSheet("height: 40px; font-weight: bold; background-color: #27ae60; color: white;")
+        l_layout.addWidget(self.btn_run)
+
+        self.pbar = QProgressBar()
+        l_layout.addWidget(self.pbar)
+
+        # Right Panel
+        right = QSplitter(Qt.Vertical)
+        self.table = QTableView()
+        right.addWidget(self.table)
+        
+        self.txt = QTextEdit()
+        self.txt.setReadOnly(True)
+        self.txt.setStyleSheet("font-family: Consolas; font-size: 11pt; background-color: #f0f0f0;")
+        right.addWidget(self.txt)
+        
+        layout.addWidget(left)
+        layout.addWidget(right)
+
+    def load_data(self):
+        path, _ = QFileDialog.getOpenFileName(self, "选择文件", "", "Excel (*.xlsx)")
+        if not path: return
+        
+        self.txt.setText("正在加载数据并进行类型推断...\n")
+        QApplication.processEvents()
+        
+        t0 = time.time()
+        # 调用核心引擎加载
+        self.df, types = DataEngine.load_and_convert(path)
+        
+        # 清空 UI
+        for i in reversed(range(self.scroll_layout.count())):
+            self.scroll_layout.itemAt(i).widget().setParent(None)
+        self.col_widgets.clear()
+        self.target_combo.clear()
+        
+        # 重建 UI
+        for col in self.df.columns:
+            w = ColumnWidget(col, types[col])
+            self.scroll_layout.addWidget(w)
+            self.col_widgets[col] = w
+            
+            # 只有数值型适合做目标
+            if types[col] == ColumnType.NUMERIC:
+                self.target_combo.addItem(col)
+
+        # 预览
+        self.table.setModel(PandasModel(self.df))
+        
+        self.btn_run.setEnabled(True)
+        self.txt.append(f"加载完成: {self.df.height} 行, {self.df.width} 列\n耗时: {time.time()-t0:.2f}s")
+        self.txt.append("提示: 请在左侧检查列类型。系统已自动将能转为数字的转为数值，否则保留为文本。")
+
+    def run_analysis(self):
+        target = self.target_combo.currentText()
+        if not target: return
+        
+        # 收集配置
+        config = {col: w.get_config() for col, w in self.col_widgets.items()}
+        
+        self.btn_run.setEnabled(False)
+        self.worker = AnalysisWorker(self.df, config, target)
+        self.worker.progress.connect(self.pbar.setValue)
+        self.worker.finished.connect(self.on_finished)
+        self.worker.start()
+
+    def on_finished(self, text):
+        self.txt.append(text)
+        self.btn_run.setEnabled(True)
+        self.pbar.setValue(100)
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    win = MainWindow()
+    win.show()
+    sys.exit(app.exec())
+```

@@ -114,3 +114,24 @@
 # 常见问题
 - -rw-r--r-- 1 tfsn20 tfsn20    0 Dec 16 10:32 my_script.py 能执行python3 my_script.py
   Python脚本不需要执行权限才能被运行。关键是Python解释器需要执行权限,而不是脚本本身。
+- sudo密码忘记
+方法一：从 Windows PowerShell 重置（推荐，最简单）
+步骤 1：确认发行版名称
+在 Windows PowerShell 或 CMD 中运行：
+wsl -l -v
+输出示例：
+  NAME      STATE           VERSION
+* Ubuntu    Running         2
+记住你的发行版名称（如 Ubuntu、Ubuntu-20.04 等）。
+步骤 2：以 root 用户进入 WSL2
+在 Windows PowerShell 中运行：
+wsl -d Ubuntu -u root
+将 Ubuntu 替换为你的实际发行版名称
+此时你会直接进入 WSL2 的 root shell，无需密码。
+步骤 3：重置用户密码
+在 WSL2 内运行：
+# 查看当前用户列表（确认你的用户名）
+ls /home
+# 重置密码（将 username 替换为你的实际用户名）
+passwd username
+系统会提示你输入新密码（输入时不显示字符），确认两次即可。

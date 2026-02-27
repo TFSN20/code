@@ -130,8 +130,11 @@ wsl -d Ubuntu -u root
 此时你会直接进入 WSL2 的 root shell，无需密码。
 步骤 3：重置用户密码
 在 WSL2 内运行：
+```
 # 查看当前用户列表（确认你的用户名）
 ls /home
 # 重置密码（将 username 替换为你的实际用户名）
 passwd username
+```
 系统会提示你输入新密码（输入时不显示字符），确认两次即可。
+- 查看wsl1或wsl2`wsl -l -v`

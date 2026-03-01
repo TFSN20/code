@@ -138,3 +138,66 @@ passwd username
 ```
 系统会提示你输入新密码（输入时不显示字符），确认两次即可。
 - 查看wsl1或wsl2`wsl -l -v`
+## 安装
+- 查看并复制一个发行版名称(NAME)
+  ```
+  wsl --list --online
+  # 或
+  wsl -l -o
+  ```
+- 确保C盘至少剩余10GB+，因为默认安装到C:\Users\<用户名>\AppData\Local\Packages\下，安装完成后重启电脑
+  ```
+  wsl --install -d <发行版名称>
+  ```
+- 命令安装默认wsl2，如果想转换到wsl1
+  ```
+  wsl --set-version <发行版名称> 1
+  ```
+  或在安装前指定全局wsl1
+  ```
+  wsl --set-default-version 1
+  ```
+- 查看已安装的发行版名称、状态、wsl版本
+  ```
+  wsl --list --verbose
+  # 或
+  wsl -l -v
+  ```
+- 停止运行中的 WSL
+  ```
+  wsl --shutdown
+  ```
+- 导出/备份指定发行版
+  ```
+  wsl --export <发行版名称> C:\backup\ubuntu2204-backup.tar
+  ```
+- 从文件导入安装/改名
+  ```
+  # 语法：wsl --import <新名字> <安装路径> <备份文件> --version 1
+  wsl --import Ubuntu-22.04-WSL1 D:\WSL\Ubuntu-WSL1 C:\backup\ubuntu2204-backup.tar --version 1
+  ```
+- 通过 --import 导入的系统，默认登录用户会变成 root，若想自动以普通用户登录
+  ```
+  # 查看用户名
+  ls /home
+  # 编辑配置文件
+  nano /etc/wsl.conf
+  ```
+  输入
+  ```
+  [user]
+  default=<你的用户名>
+  ```
+- 卸载某个发行版（会删除所有数据）
+  ```
+  wsl --unregister <发行版名称>
+  ```
+- 设置默认启动的发行版
+  ```
+  wsl --set-default <发行版名称>
+  ```
+- 以特定用户身份启动
+  ```
+  wsl -d <发行版名称> -u <用户名>
+  ```
+- 

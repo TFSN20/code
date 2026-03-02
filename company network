@@ -1,0 +1,537 @@
+2.py
+```
+import threading
+import socket
+import ssl
+import time
+import datetime
+from mitmproxy import http, ctx
+
+# ================= 配置区域 =================
+SNI_CONFIG = {
+    # B站
+    ".bilibili.com": [
+        "res.wx.qq.com",
+    ],
+    ".hdslb.com": [
+        'huainan.hua.com',
+        "res.wx.qq.com", 
+    ],
+    'boss.hdslb.com': [
+        'res.cmccsign.com'
+        'cdn.hainanyihong.cn',
+        'vdn-private.zhihu.com',
+        'www.hudun.com',
+    ],
+    "i0.hdslb.com": [
+        'www.2345.com',
+        "www.aliyun.com",
+        'picows.yunxuetang.com',
+        'update.hihonorcdn.com',
+    ],
+    "i1.hdslb.com": [
+        "www.aliyun.com",
+        't1.huanqiu.cn',
+        'www.kunlun.com',
+        'www.inekoxia.com',
+    ],
+    "s1.hdslb.com": [
+        "www.haimian.com",
+        'www.zuhaoguanjia.com',
+        'www.chengzijianzhan.com',
+        'www.sojson.com',
+        'senad.cn',
+        'res.vmallres.com',
+        'www.pgyer.com',
+        'proxy.baishilang.cn',
+    ],
+    ".bilivideo.com":[
+        'detail-browser.vivo.com.cn',
+        "www.aliyun.com",
+        "res.wx.qq.com",
+    ],
+
+    # 微博
+    ".weibo.com": [
+        "www.sina.com.cn",
+        "www.aliyun.com",
+    ],
+    "weibocdn.com": [
+        'www.sina.com.cn',
+    ],
+    "weibo.com": [
+        "www.sina.com.cn",
+    ],
+
+    # 抖音
+    ".douyin.com": [
+        "www.volcengine.com",
+    ],
+    "www.douyin.com": [
+        'doubao.com',
+        'weihu.feishu.cn',
+        'image.uc.cn',
+        "www.volcengine.com",
+    ],
+    ".douyinstatic.com": [
+        "www.volcengine.com",
+    ],
+    "lf-douyin-pc-web.douyinstatic.com": [
+        'www.2345.com',
+        'www.sina.com.cn',
+        'www.xiqianyangyi.com',
+        "www.volcengine.com",
+        "www.yuuav.com",
+        '233.com',
+        'www.taimei.com',
+    ],
+    ".douyinvod.com": [
+        'cdn-hw-static.shanhutech.cn',
+        'developersstatic.vivo.com',
+        "www.volcengine.com",
+    ],
+    "v3-web.douyinvod.com":[
+        'lf3-cdn-tos.bytegoofy.com',
+        'trae.com.cn',
+        'www.koubei.com',
+        'www.setcas.com',
+        'v26-cc.oceanengine.com'
+    ],
+    "v26-web.douyinvod.com":[
+        'contentcenter-drcn.dbankcdn.cn',
+        'v26-cc.oceanengine.com',
+
+    ],
+    ""
+    "v3-web-prime.douyinvod.com":[
+        'zcycdn.com',
+        'www.2345.com',
+        'xiaolong.xiaopeng.com',
+        'www.sina.com.cn',
+    ],
+    ".douyinpic.com": [
+        'www.2345.com',
+        'www.xiqianyangyi.com',
+    ],
+    ".douyinliving.com": [
+        'kuai.vzan.com',
+
+    ],
+    ".huoshanstatic.com": [
+        'view.163.com',
+        'www.ip.cc',
+    ],
+    ".ndcpp.com": [
+        'www.coze.cn',
+        'trae.com.cn',
+        'jimeng.com',
+    ]
+}
+
+TEST_TIMEOUT = 3
+# ===========================================
+
+class SniAutoSwitcher:
+    def __init__(self):
+        self.sorted_rules = sorted(SNI_CONFIG.items(), key=lambda x: len(x[0]), reverse=True)
+        self.active_sni_cache = {}
+        self.testing_flags = set()
+        self.lock = threading.Lock()
+
+    def get_config_for_host(self, host: str):
+        for suffix, candidates in self.sorted_rules:
+            if host.endswith(suffix):
+                return suffix, candidates
+        return None, None
+
+    def request(self, flow: http.HTTPFlow) -> None:
+        host = flow.request.host
+        suffix, candidates = self.get_config_for_host(host)
+        if suffix:
+            # 优先读缓存，没有缓存用第一个
+            chosen_sni = self.active_sni_cache.get(suffix, candidates[0])
+            if chosen_sni:
+                flow.server_conn.sni = chosen_sni
+
+    def error(self, flow: http.HTTPFlow) -> None:
+        host = flow.request.host
+        suffix, candidates = self.get_config_for_host(host)
+
+        if suffix and candidates:
+            with self.lock:
+                if suffix in self.testing_flags:
+                    return
+                self.testing_flags.add(suffix)
+            
+            # 启动测试线程
+            t = threading.Thread(target=self.run_connectivity_tests, args=(host, suffix, candidates))
+            t.daemon = True
+            t.start()
+
+    def verify_sni_connectivity(self, target_host, sni_candidate):
+        """测试单个 SNI 连通性"""
+        context = ssl.create_default_context()
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+        actual_sni = sni_candidate if sni_candidate else target_host
+        
+        try:
+            sock = socket.create_connection((target_host, 443), timeout=TEST_TIMEOUT)
+            with context.wrap_socket(sock, server_hostname=actual_sni) as ssock:
+                request = f"HEAD / HTTP/1.1\r\nHost: {target_host}\r\nConnection: close\r\n\r\n"
+                ssock.write(request.encode('utf-8'))
+                ssock.read(1024) # 能读到数据就算通
+                return True, "OK"
+        except Exception as e:
+            # 简化错误信息，只保留关键部分
+            # err_msg = str(e).split(':')[-1].strip() if ':' in str(e) else str(e)
+            # return False, err_msg
+            
+            # 打印完整的错误类型和内容，而不仅仅是最后一部分
+            err_msg = f"{type(e).__name__}: {e}" 
+            return False, err_msg
+        finally:
+            try:
+                sock.close()
+            except:
+                pass
+
+    def run_connectivity_tests(self, target_host, suffix, candidates):
+        """
+        后台测试逻辑 - 改进版：缓冲输出，一次性打印
+        """
+        # 1. 初始化报告缓冲区
+        timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+        report_buffer = []
+        report_buffer.append(f"\n{'='*10} SNI 测试报告 [{timestamp}] {'='*10}")
+        report_buffer.append(f"目标域名: {target_host}")
+        report_buffer.append(f"匹配规则: {suffix}")
+        report_buffer.append("-" * 50)
+        report_buffer.append(f"{'候选 SNI':<25} | {'状态':<4} | {'详情'}")
+        report_buffer.append("-" * 50)
+
+        working_snis = []
+
+        # 2. 逐个测试 (不打印，只存入 buffer)
+        for sni in candidates:
+            display_name = sni if sni else "None (直连)"
+            is_success, msg = self.verify_sni_connectivity(target_host, sni)
+            
+            status_icon = "✅" if is_success else "❌"
+            # 将结果行添加到缓冲区
+            report_buffer.append(f"{display_name:<25} | {status_icon:<4} | {msg}")
+            
+            if is_success:
+                working_snis.append(sni)
+
+        # 3. 决策与结尾
+        best_sni = None
+        if working_snis:
+            best_sni = working_snis[0]
+            with self.lock:
+                self.active_sni_cache[suffix] = best_sni
+            result_msg = f"策略更新 -> 已切换至: {best_sni if best_sni else '直连'}"
+        else:
+            result_msg = "全部失败 -> 保持原策略"
+        
+        report_buffer.append("-" * 50)
+        report_buffer.append(f"测试结论: {result_msg}")
+        report_buffer.append(f"{'='*42}\n")
+
+        # 4. 【关键步骤】一次性打印完整报告到控制台
+        # 使用 join 将所有行合并为一个大字符串
+        full_report = "\n".join(report_buffer)
+        
+        # 使用 ctx.log.alert 让它在 mitmproxy 日志中变成红色/高亮，更显眼
+        ctx.log.alert(full_report)
+
+        # 解锁
+        with self.lock:
+            self.testing_flags.remove(suffix)
+
+addons = [
+    SniAutoSwitcher()
+]
+```
+  1.py
+```
+import threading
+import socket
+import ssl
+import time
+from mitmproxy import http, ctx
+
+# ================= 配置区域 =================
+
+# 格式： "目标域名后缀": ["候选SNI 1", "候选SNI 2", None]
+# None 代表直连 (不伪装 SNI)
+SNI_CONFIG = {
+    # B站
+    ".bilibili.com": [
+        "res.wx.qq.com",
+    ],
+    ".hdslb.com": [
+        "res.wx.qq.com", 
+    ],
+    'boss.hdslb.com': [
+        'res.cmccsign.com'
+        'cdn.hainanyihong.cn',
+        'vdn-private.zhihu.com',
+        'www.hudun.com',
+    ],
+    "i0.hdslb.com": [
+        'www.2345.com',
+        "www.aliyun.com",
+        'picows.yunxuetang.com',
+        'update.hihonorcdn.com',
+    ],
+    "i1.hdslb.com": [
+        "www.aliyun.com",
+        't1.huanqiu.cn',
+        'www.kunlun.com',
+        'www.inekoxia.com',
+    ],
+    "s1.hdslb.com": [
+        "www.haimian.com",
+        'www.zuhaoguanjia.com',
+        'www.chengzijianzhan.com',
+        'www.sojson.com',
+        'senad.cn',
+        'res.vmallres.com',
+        'www.pgyer.com',
+        'proxy.baishilang.cn',
+    ],
+    ".bilivideo.com":[
+        'detail-browser.vivo.com.cn',
+        "www.aliyun.com",
+        "res.wx.qq.com",
+    ],
+
+    # 微博
+    ".weibo.com": [
+        "www.sina.com.cn",
+        "www.aliyun.com",
+    ],
+    "weibocdn.com": [
+        'www.sina.com.cn',
+    ],
+    "weibo.com": [
+        "www.sina.com.cn",
+    ],
+
+    # 抖音
+    ".douyin.com": [
+        "www.volcengine.com",
+    ],
+    "www.douyin.com": [
+        'doubao.com',
+        'weihu.feishu.cn',
+        'image.uc.cn',
+        "www.volcengine.com",
+    ],
+    ".douyinstatic.com": [
+        "www.volcengine.com",
+    ],
+    "lf-douyin-pc-web.douyinstatic.com": [
+        'www.2345.com',
+        'www.sina.com.cn',
+        'www.xiqianyangyi.com',
+        "www.volcengine.com",
+        "www.yuuav.com",
+        '233.com',
+        'www.taimei.com',
+    ],
+    ".douyinvod.com": [
+        "www.volcengine.com",
+    ],
+    "v26-web-prime.douyinvod.com":[
+        'cdn-hw-static.shanhutech.cn',
+        'jlc-code.com',
+    ],
+    "v3-web-prime.douyinvod.com":[
+        'zcycdn.com',
+        'www.2345.com',
+        'xiaolong.xiaopeng.com',
+        'www.sina.com.cn',
+    ],
+    ".douyinpic.com": [
+        'www.2345.com',
+        'www.xiqianyangyi.com',
+    ],
+    ".douyinliving.com": [
+        'kuai.vzan.com',
+
+    ],
+    ".huoshanstatic.com": [
+        'view.163.com',
+        'www.ip.cc',
+    ],
+}
+
+
+# 每个 SNI 候选检测的次数
+CHECK_TIMES = 2
+
+# 单次检测超时时间 (秒)
+TEST_TIMEOUT = 1
+
+# ===========================================
+
+class SniPreChecker:
+    def __init__(self):
+        # 缓存最终决定的最佳 SNI
+        self.active_sni_cache = {}
+        
+        # 对配置按域名长度排序，保证长域名优先匹配
+        self.sorted_rules = sorted(SNI_CONFIG.items(), key=lambda x: len(x[0]), reverse=True)
+        
+        # 标记是否正在初始化检测
+        self.is_checking = False
+
+    # 修正点：去掉了 loader 类型标注，兼容所有版本
+    def load(self, loader):
+        """
+        脚本加载时触发：启动后台检测线程
+        """
+        ctx.log.info("正在启动 SNI 初始化检查线程...")
+        t = threading.Thread(target=self.run_startup_checks)
+        t.daemon = True
+        t.start()
+
+    def request(self, flow: http.HTTPFlow) -> None:
+        """
+        请求拦截：应用缓存的最佳 SNI
+        """
+        host = flow.request.host
+        
+        # 查找匹配规则
+        matched_suffix = None
+        for suffix, _ in self.sorted_rules:
+            if host.endswith(suffix):
+                matched_suffix = suffix
+                break
+        
+        if matched_suffix:
+            # 如果检测还没完成，先临时用列表第一个，或者直连
+            # 这里选择：如果有缓存用缓存，没缓存(还在测)就用列表第一个
+            if matched_suffix in self.active_sni_cache:
+                chosen_sni = self.active_sni_cache[matched_suffix]
+            else:
+                # 降级策略：使用配置列表的第一个作为临时方案
+                candidates = SNI_CONFIG[matched_suffix]
+                chosen_sni = candidates[0] if candidates else None
+            
+            if chosen_sni:
+                flow.server_conn.sni = chosen_sni
+
+    def verify_sni_once(self, target_host, sni_candidate):
+        """执行一次连接测试"""
+        context = ssl.create_default_context()
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+        actual_sni = sni_candidate if sni_candidate else target_host
+        
+        start_time = time.time()
+        sock = None
+        try:
+            # 构造探测目标
+            probe_host = target_host
+            if probe_host.startswith("."): 
+                probe_host = "www" + probe_host
+                
+            sock = socket.create_connection((probe_host, 443), timeout=TEST_TIMEOUT)
+            with context.wrap_socket(sock, server_hostname=actual_sni) as ssock:
+                # 发送 HEAD 请求
+                request = f"HEAD / HTTP/1.1\r\nHost: {probe_host}\r\nConnection: close\r\n\r\n"
+                ssock.write(request.encode('utf-8'))
+                ssock.read(1024) # 读取响应
+                return True, (time.time() - start_time) * 1000 # 返回耗时ms
+        except Exception:
+            return False, 0
+        finally:
+            if sock:
+                try:
+                    sock.close()
+                except:
+                    pass
+
+    def run_startup_checks(self):
+        """
+        核心逻辑：遍历测试并生成报告
+        """
+        self.is_checking = True
+        
+        # 最终报告的缓冲区
+        report_lines = []
+        report_lines.append(f"\n{'='*20} SNI 初始化可用性报告 {'='*20}")
+        report_lines.append(f"检测配置: 每个 SNI 测试 {CHECK_TIMES} 次")
+        report_lines.append("-" * 70)
+        report_lines.append(f"{'域名后缀':<20} | {'SNI 候选':<25} | {'成功率':<8} | {'平均延迟':<8}")
+        report_lines.append("-" * 70)
+
+        # 遍历所有配置规则
+        for suffix, candidates in self.sorted_rules:
+            probe_target = "www" + suffix
+            
+            best_sni = None
+            best_success_rate = -1
+            best_latency = 99999
+
+            # 遍历该域名的所有 SNI 候选者
+            for sni in candidates:
+                success_count = 0
+                total_latency = 0
+                
+                # 多次测试
+                for _ in range(CHECK_TIMES):
+                    ok, latency = self.verify_sni_once(probe_target, sni)
+                    if ok:
+                        success_count += 1
+                        total_latency += latency
+                    time.sleep(0.1)
+
+                # 统计结果
+                success_rate = int((success_count / CHECK_TIMES) * 100)
+                avg_latency = int(total_latency / success_count) if success_count > 0 else 0
+                
+                display_sni = sni if sni else "None(直连)"
+                
+                # 添加到报告行
+                if success_rate > 0:
+                    report_lines.append(f"{suffix:<20} | {display_sni:<25} | {success_rate}%     | {avg_latency}ms")
+                else:
+                    report_lines.append(f"{suffix:<20} | {display_sni:<25} | 0%       | ---")
+
+                # 评选最佳 SNI
+                if success_rate > best_success_rate:
+                    best_success_rate = success_rate
+                    best_latency = avg_latency
+                    best_sni = sni
+                elif success_rate == best_success_rate and success_rate > 0:
+                    if avg_latency < best_latency:
+                        best_latency = avg_latency
+                        best_sni = sni
+            
+            # 分隔线
+            report_lines.append("-" * 70)
+
+            # 更新缓存
+            if best_sni is not None and best_success_rate > 0:
+                self.active_sni_cache[suffix] = best_sni
+                report_lines.append(f"   ✅ [{suffix}] 最终选用: {best_sni if best_sni else '直连'}")
+            else:
+                fallback = candidates[0] if candidates else None
+                self.active_sni_cache[suffix] = fallback
+                report_lines.append(f"   ❌ [{suffix}] 全部失败，降级使用: {fallback}")
+            report_lines.append("=" * 70)
+
+        # 打印完整报告
+        final_report = "\n".join(report_lines)
+        ctx.log.alert(final_report)
+        
+        self.is_checking = False
+
+addons = [
+    SniPreChecker()
+]
+```

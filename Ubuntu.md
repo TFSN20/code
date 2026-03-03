@@ -205,7 +205,7 @@ passwd username
   ```
   $env:MY_VAR = "Value"
   ```
-- 安装uv到指定目录（无需python/pip环境，无需管理员权限）
+- 安装uv到指定目录（无需python/pip环境，无需管理员权限，win上还会自动将"D:\Tools\uv"添加到用户Path变量）
   ```
   $env:UV_INSTALL_DIR = "D:\Tools\uv"
   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"

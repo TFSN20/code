@@ -200,3 +200,25 @@ passwd username
   ```
   wsl -d <发行版名称> -u <用户名> --cd ~
   ```
+## 安装uv
+- powershell临时变量
+  ```
+  $env:MY_VAR = "Value"
+  ```
+- 安装uv到指定目录（无需python/pip环境，无需管理员权限）
+  ```
+  $env:UV_INSTALL_DIR = "D:\Tools\uv"
+  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+  ```
+- 更新uv
+  ```
+  uv self update
+  ```
+- uv版本
+  ```
+  uv -v
+  ```
+- uv位置（powershell会把where识别为Where-Object，因此需要全名）
+  ```
+  where.exe uv
+  ```

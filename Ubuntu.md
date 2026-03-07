@@ -200,6 +200,22 @@ passwd username
   ```
   wsl -d <发行版名称> -u <用户名> --cd ~
   ```
+## 源
+- 官方源
+  ```
+  # 备份
+  sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak.$(date +%F)
+  # 打开修改
+  sudo nano /etc/apt/sources.list
+  # 清空原有，写入下面
+  deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy main restricted universe multiverse
+  deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-updates main restricted universe multiverse
+  deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-backports main restricted universe multiverse
+  deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-security main restricted universe multiverse
+  # 更新索引
+  sudo apt update
+  ```
+  
 ## 安装uv
 - powershell临时变量
   ```

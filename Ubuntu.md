@@ -215,6 +215,39 @@ passwd username
   # 更新索引
   sudo apt update
   ```
+## 安装gaussian
+- 下载bash
+  ```
+  sudo apt update
+  sudo apt install csh tcsh
+  ```
+- 选择下载，我选择了g16-C01-AVX优化版本
+- 解压并赋予权限和初始化
+  ```
+  cd
+  mkdir gaussian
+  cd gaussian
+  tar xvf G16-C01-AVX.tbJ
+  cd g16
+  chmod -R 755 *
+  ./bsd/install
+  ```
+- 设置变量
+  ```
+  nano $HOME/.bashrc
+  ```
+  写入以下
+  ```
+  export g16root=$HOME/gaussian
+  export GAUSS_EXEDIR=$g16root/g16
+  export GAUSS_SCRDIR=$g16root/scr
+  export PATH=$g16root:$PATH
+  source $g16root/g16/bsd/g16.profile
+  ```
+  加载bashrc
+  ```
+  source $HOME/.bahsrc
+  ```
   
 ## 安装uv
 - powershell临时变量

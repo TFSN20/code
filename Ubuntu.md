@@ -222,7 +222,7 @@ passwd username
   sudo apt install csh tcsh
   ```
 - 选择下载，我选择了g16-C01-AVX优化版本
-- 解压并赋予权限和初始化
+- 解压并赋予权限，添加scr临时文件目录，初始化
   ```
   cd
   mkdir gaussian
@@ -230,6 +230,7 @@ passwd username
   tar xvf G16-C01-AVX.tbJ
   cd g16
   chmod -R 755 *
+  mkdir -p ~/gaussian/scr
   ./bsd/install
   ```
 - 设置变量

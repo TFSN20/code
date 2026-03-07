@@ -241,7 +241,6 @@ passwd username
   export g16root=$HOME/gaussian
   export GAUSS_EXEDIR=$g16root/g16
   export GAUSS_SCRDIR=$g16root/scr
-  export PATH=$g16root:$PATH
   source $g16root/g16/bsd/g16.profile
   ```
   加载bashrc

@@ -304,4 +304,28 @@ passwd username
 - 下载python
   ```
   uv python install 3.12
+  uv python install 3.10
+  ```
+- 指定python版本创建项目（不指定时默认使用最新python），下载项目需要的库
+  ```
+  # 初始化 uv 项目
+  uv init gaussian_project_python3.10 --python 3.10
+  cd gaussian_project
+  # 添加计算化学常用包
+  uv add numpy pandas scipy ase rdkit cclib
+  ```
+- 修改项目使用的python版本（会重新选择和下载项目使用的库）
+  ```
+  uv python pin 3.8
+  uv sync --reinstall
+  ```
+- 项目库信息
+  ```
+  uv pip list
+  # 或
+  uv pip freeze
+  ```
+  库间依赖
+  ```
+  uv pip tree
   ```

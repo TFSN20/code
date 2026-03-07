@@ -249,7 +249,8 @@ passwd username
   source $HOME/.bahsrc
   ```
   
-## 安装uv
+## uv
+### win
 - powershell临时变量
   ```
   $env:MY_VAR = "Value"
@@ -270,4 +271,37 @@ passwd username
 - uv位置（powershell会把where识别为Where-Object，因此需要全名）
   ```
   where.exe uv
+  ```
+### linux
+- 安装uv
+  ```
+  # 1. 确保系统基础工具已更新（可选，但推荐）
+  sudo apt update && sudo apt install -y curl
+
+  # 2. 执行官方安装脚本
+  # 原理：下载 install.sh 脚本 -> 脚本检测架构 -> 下载对应 uv 二进制文件到 ~/.local/bin -> 自动尝试修改 shell 配置文件
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+
+  # 3. 验证安装
+  uv --version
+- 更改python下载源和pip源
+  ```
+  # 1. 打开配置文件 (根据你的 shell 选择 .bashrc 或 .zshrc)
+  nano ~/.bashrc
+
+  # 2. 在文件末尾添加以下内容 (以npmmirror为例)
+  # 原理：每次启动终端时自动设置该环境变量
+  export UV_PYTHON_INSTALL_MIRROR="https://registry.npmmirror.com/-/binary/python-build-standalone/"
+  export UV_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+  # 3. 保存退出 (Ctrl+O, Enter, Ctrl+X)，然后刷新配置
+  source ~/.bashrc
+  ```
+### 使用
+- 查看可安装和已安装
+  ```
+  uv python list
+  ```
+- 下载python
+  ```
+  uv python install 3.12
   ```

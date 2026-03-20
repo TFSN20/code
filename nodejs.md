@@ -92,9 +92,10 @@
     ```
     fnm install 22
     ```
-  - 加载node文件夹（仅当前powershell窗口）
+  - 加载node文件夹 修改fnm策略（仅当前powershell窗口）
     ```
     fnm env --use-on-cd | Out-String | Invoke-Expression
+    Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
     ```
   - 设置全局默认版本
     ```

@@ -102,7 +102,7 @@
     fnm ls
     ```
 ### 使用
--  加载node文件夹 修改fnm策略（仅当前powershell窗口）
+-  加载node文件夹（否则node和npm识别不到） 修改fnm策略 仅当前powershell窗口生效 关闭后需要重新运行
    ```
    fnm env --use-on-cd | Out-String | Invoke-Expression
    Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
@@ -110,5 +110,14 @@
 - 使用版本
   ```
   fnm use 24
+  ```
+- 查看库源 库源位置
+  ```
+  npm config get registry
+  npm config list
+  ```
+- 修改库源
+  ```
+  npm config set registry https://registry.npmmirror.com
   ```
     

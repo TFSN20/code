@@ -72,4 +72,15 @@
     ```
     npm init -y
     ```
+  ## fnm安装和使用
+  - fnm.exe github下载 并将下载目录添加到用户Path变量
+  - fnm信息
+    ```
+    fnm env
+    ```
+  - node安装位置修改：新建指定文件夹，将路径添加到用户变量，名为`FNM_DIR`
+  - 查看可安装版本
+    ```
+    fnm ls-remote
+    ```
     

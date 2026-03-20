@@ -72,7 +72,8 @@
     ```
     npm init -y
     ```
-  ## fnm安装和使用
+  ## fnm
+  ### 安装
   - fnm.exe github下载 并将下载目录添加到用户Path变量
   - fnm 环境变量信息
     ```
@@ -92,11 +93,6 @@
     ```
     fnm install 22
     ```
-  - 加载node文件夹 修改fnm策略（仅当前powershell窗口）
-    ```
-    fnm env --use-on-cd | Out-String | Invoke-Expression
-    Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
-    ```
   - 设置全局默认版本
     ```
     fnm default 22
@@ -105,4 +101,14 @@
     ```
     fnm ls
     ```
+### 使用
+-  加载node文件夹 修改fnm策略（仅当前powershell窗口）
+   ```
+   fnm env --use-on-cd | Out-String | Invoke-Expression
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+   ```
+- 使用版本
+  ```
+  fnm use 24
+  ```
     

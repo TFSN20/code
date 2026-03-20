@@ -92,6 +92,10 @@
     ```
     fnm install 22
     ```
+  - 加载node文件夹（仅当前powershell窗口）
+    ```
+    fnm env --use-on-cd | Out-String | Invoke-Expression
+    ```
   - 设置全局默认版本
     ```
     fnm default 22

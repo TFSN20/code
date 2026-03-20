@@ -74,13 +74,30 @@
     ```
   ## fnm安装和使用
   - fnm.exe github下载 并将下载目录添加到用户Path变量
-  - fnm信息
+  - fnm 环境变量信息
     ```
     fnm env
     ```
   - node安装位置修改：新建指定文件夹，将路径添加到用户变量，名为`FNM_DIR`
+  - node下载源修改：用户变量新建`FNM_NODE_DIST_MIRROR	`，值为`https://npmmirror.com/mirrors/node`
   - 查看可安装版本
     ```
     fnm ls-remote
+    ```
+  - 安装最新长期稳定版本
+    ```
+    fnm install --lts
+    ```
+  - 安装指定版本最新稳定版（安装 22.x 的最新稳定版）
+    ```
+    fnm install 22
+    ```
+  - 设置全局默认版本
+    ```
+    fnm default 22
+    ```
+  - 查看已安装版本
+    ```
+    fnm ls
     ```
     

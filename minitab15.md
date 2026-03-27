@@ -69,3 +69,81 @@
       Color 2;
       Type 2.
   ```
+- 8个图组合为两个组图
+  ```
+  Layout;
+    Title "412B 1#~4# 揉平工位".
+  Boxplot '揉平后正极耳外漏' * '磁悬浮动子';
+    Include;
+      Where "'揉平工位' = 1";
+    Title "揉平工位 = 1 的箱线图";
+    Reference 2 0.2 1.6;
+      Color 2;
+      Type 2;
+    Reference 2 0.7 0.9 1.1;
+      Color 2;
+      Type 2;
+    Figure 0.0 0.5 0.5 1.0.
+  Boxplot '揉平后正极耳外漏' * '磁悬浮动子';
+    Include;
+      Where "'揉平工位' = 2";
+    Title "揉平工位 = 2 的箱线图";
+    Reference 2 0.2 0.7 0.9 1.1 1.6;
+      Color 2;
+      Type 2;
+    Figure 0.5 1.0 0.5 1.0.
+  Boxplot '揉平后正极耳外漏' * '磁悬浮动子';
+    Include;
+      Where "'揉平工位' = 3";
+    Title "揉平工位 = 3 的箱线图";
+    Reference 2 0.2 0.7 0.9 1.1 1.6;
+      Color 2;
+      Type 2;
+    Figure 0.0 0.5 0.0 0.5.
+  Boxplot '揉平后正极耳外漏' * '磁悬浮动子';
+    Include;
+      Where "'揉平工位' = 4";
+    Title "揉平工位 = 4 的箱线图";
+    Reference 2 0.2 0.7 0.9 1.1 1.6;
+      Color 2;
+      Type 2;
+    Figure 0.5 1.0 0.0 0.5.
+  EndLayout.
+  
+  Layout;
+    Title "412B 5#~8# 揉平工位".
+  Boxplot '揉平后正极耳外漏' * '磁悬浮动子';
+    Include;
+      Where "'揉平工位' = 5";
+    Title "揉平工位 = 5 的箱线图";
+    Reference 2 0.2 0.7 0.9 1.1 1.6;
+      Color 2;
+      Type 2;
+    Figure 0.0 0.5 0.5 1.0.
+  Boxplot '揉平后正极耳外漏' * '磁悬浮动子';
+    Include;
+      Where "'揉平工位' = 6";
+    Title "揉平工位 = 6 的箱线图";
+    Reference 2 0.2 0.7 0.9 1.1 1.6;
+      Color 2;
+      Type 2;
+    Figure 0.5 1.0 0.5 1.0.
+  Boxplot '揉平后正极耳外漏' * '磁悬浮动子';
+    Include;
+      Where "'揉平工位' = 7";
+    Title "揉平工位 = 7 的箱线图";
+    Reference 2 0.2 0.7 0.9 1.1 1.6;
+      Color 2;
+      Type 2;
+    Figure 0.0 0.5 0.0 0.5.
+  Boxplot '揉平后正极耳外漏' * '磁悬浮动子';
+    Include;
+      Where "'揉平工位' = 8";
+    Title "揉平工位 = 8 的箱线图";
+    Reference 2 0.2 0.7 0.9 1.1 1.6;
+      Color 2;
+      Type 2;
+    Figure 0.5 1.0 0.0 0.5.
+  EndLayout.
+  ```
+    

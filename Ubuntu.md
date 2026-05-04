@@ -272,6 +272,17 @@ passwd username
   ```
   where.exe uv
   ```
+- python下载位置，包下载位置，包下载源查看和更改（通过环境变量）
+  ```
+  # 默认C:\Users\用户名\AppData\Roaming\uv\python\
+  UV_PYTHON_INSTALL_DIR
+
+  # 默认C:\Users\用户名\AppData\Local\uv\cache
+  UV_CACHE_DIR
+
+  UV_INDEX_URL
+  https://pypi.tuna.tsinghua.edu.cn/simple
+  ```
 ### linux
 - 安装uv
   ```

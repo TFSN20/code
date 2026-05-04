@@ -325,6 +325,11 @@ passwd username
   # 添加计算化学常用包
   uv add numpy pandas scipy ase rdkit cclib
   ```
+- 创建项目文件夹后进入
+  ```
+  uv init
+  uv python pin 3.12
+  ```
 - 修改项目使用的python版本（会重新选择和下载项目使用的库）
   ```
   uv python pin 3.8

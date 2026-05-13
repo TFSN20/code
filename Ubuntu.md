@@ -139,6 +139,14 @@ passwd username
 系统会提示你输入新密码（输入时不显示字符），确认两次即可。
 - 查看wsl1或wsl2`wsl -l -v`
 ## 安装
+### 前置工作
+- 控制面板里启用linux和子系统
+- powershell管理员运行
+  ```
+  dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+  dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+  ```
+  重启
 - 查看并复制一个发行版名称(NAME)
   ```
   wsl --list --online

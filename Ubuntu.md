@@ -353,3 +353,23 @@ passwd username
   ```
   uv pip tree
   ```
+## 其他工具
+### pdf可搜索（中文为主，混合英文专有名词）
+- 使用ocrmypdf
+- 文件夹内批量处理
+  ```
+  mkdir output
+
+  for f in *.pdf; do
+    ocrmypdf \
+    -l chi_sim+eng \
+    --image-dpi 300 \
+    --rotate-pages \
+    --deskew \
+    --clean \
+    --skip-text \
+    --clean-final \
+    "$f" \
+    "output/$f"
+  done
+  ```
